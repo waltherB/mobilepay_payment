@@ -469,15 +469,18 @@ class PaymentTransaction(models.Model):
             _logger.error(f"Failed to cancel transaction {self.reference}: {str(e)}")
             raise UserError(_("Cancellation failed: %s") % str(e))
 
+
     def _get_specific_rendering_values(self, processing_values):
         """Override to provide MobilePay-specific rendering values."""
         res = super()._get_specific_rendering_values(processing_values)
         if self.provider_code != 'mobilepay':
             return res
 
-        # MobilePay-specific rendering values will be added in later tasks
+        # Initiate payment with MobilePay to get the redirect URL
+        payment_response = self._send_payment_request()
+
         mobilepay_values = {
-            'api_url': self.provider_id._mobilepay_get_api_url(),
+            'api_url': payment_response.get('redirectUrl'),
         }
-        
+
         return {**res, **mobilepay_values}
