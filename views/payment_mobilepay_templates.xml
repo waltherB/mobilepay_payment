@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="inline_form">
+        <div class="o_payment_mobilepay_inline_form">
+            <!-- Branding Header -->
+            <div class="d-flex align-items-center mb-3 p-2 bg-light rounded border">
+                <img src="/mobilepay_payment/static/img/mobilepay_icon.png" alt="MobilePay Logo" style="height: 24px; margin-right: 10px;"/>
+                <span class="font-weight-bold text-dark">Pay with MobilePay</span>
+            </div>
+            
+            <label t-attf-for="mobilepay_phone_{{provider_id}}" class="col-form-label">Phone Number</label>
+            <input type="text" 
+                   name="mobilepay_phone" 
+                   t-attf-id="mobilepay_phone_{{provider_id}}" 
+                   class="form-control" 
+                   placeholder="+45 12 34 56 78"
+                   t-att-value="request.env.user.partner_id.phone or request.env.user.partner_id.mobile"/>
+            <small class="form-text text-muted">Enter your MobilePay phone number.</small>
+        </div>
+    </template>
+
+    <template id="redirect_form">
+        <form t-att-action="api_url" method="post" target="_top">
+            <input type="hidden" name="payment_id" t-att-value="payment_id"/>
+            <input type="hidden" name="return_url" t-att-value="return_url"/>
+            <input type="hidden" name="cancel_url" t-att-value="cancel_url"/>
+        </form>
+    </template>
+</odoo>

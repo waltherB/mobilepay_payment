@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- MobilePay Payment Transaction Form View -->
+        <record id="payment_transaction_form_mobilepay" model="ir.ui.view">
+            <field name="name">payment.transaction.form.mobilepay</field>
+            <field name="model">payment.transaction</field>
+            <field name="inherit_id" ref="payment.payment_transaction_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='provider_id']" position="after">
+                    <field name="show_mobilepay_fields" invisible="1"/>
+                    <group name="mobilepay_details" string="MobilePay Details"
+                           invisible="not show_mobilepay_fields">
+                        <group name="mobilepay_ids">
+                            <field name="mobilepay_payment_id"/>
+                            <field name="mobilepay_idempotency_key"/>
+                            <field name="mobilepay_status"/>
+                            <field name="last_status_poll"/>
+                        </group>
+                        <group name="mobilepay_amounts">
+                            <field name="authorized_amount"/>
+                            <field name="captured_amount"/>
+                            <field name="refunded_amount"/>
+                            <field name="capture_eligible"/>
+                        </group>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- MobilePay Payment Transaction Tree View -->
+        <record id="payment_transaction_tree_mobilepay" model="ir.ui.view">
+            <field name="name">payment.transaction.tree.mobilepay</field>
+            <field name="model">payment.transaction</field>
+            <field name="inherit_id" ref="payment.payment_transaction_list"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='reference']" position="after">
+                    <field name="show_mobilepay_fields" column_invisible="True"/>
+                    <field name="mobilepay_payment_id" 
+                           invisible="not show_mobilepay_fields"/>
+                    <field name="mobilepay_status" 
+                           invisible="not show_mobilepay_fields"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

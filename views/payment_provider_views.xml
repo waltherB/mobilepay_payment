@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- MobilePay Payment Provider Form View -->
+        <record id="payment_provider_form_mobilepay" model="ir.ui.view">
+            <field name="name">payment.provider.form.mobilepay</field>
+            <field name="model">payment.provider</field>
+            <field name="inherit_id" ref="payment.payment_provider_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@name='provider_credentials']" position="after">
+                    <field name="show_mobilepay_fields" invisible="1"/>
+                    <group name="mobilepay_credentials" 
+                           invisible="not show_mobilepay_fields">
+                        <group string="Test Environment Credentials" name="test_credentials"
+                               invisible="state == 'enabled'">
+                            <field name="mobilepay_test_client_id"/>
+                            <field name="mobilepay_test_client_secret" password="True"/>
+                            <field name="mobilepay_test_subscription_key" password="True"/>
+                            <field name="mobilepay_test_merchant_serial"/>
+                        </group>
+                        <group string="Production Environment Credentials" name="prod_credentials"
+                               invisible="state != 'enabled'">
+                            <field name="mobilepay_prod_client_id"/>
+                            <field name="mobilepay_prod_client_secret" password="True"/>
+                            <field name="mobilepay_prod_subscription_key" password="True"/>
+                            <field name="mobilepay_prod_merchant_serial"/>
+                        </group>
+                        <group string="Webhook Configuration" name="webhook_config">
+                            <field name="mobilepay_webhook_id" readonly="1"/>
+                            <field name="mobilepay_webhook_secret" password="True" readonly="1"/>
+                            <div class="oe_button_box">
+                                <button name="action_register_webhook" 
+                                        string="Register Webhook" 
+                                        type="object" 
+                                        class="btn-primary"
+                                        invisible="mobilepay_webhook_id"/>
+                                <button name="action_unregister_webhook" 
+                                        string="Unregister Webhook" 
+                                        type="object" 
+                                        class="btn-secondary"
+                                        invisible="not mobilepay_webhook_id"/>
+                            </div>
+                        </group>
+                        <group string="Payment Flow Settings" name="payment_flow">
+                            <field name="capture_manually"/>
+                            <field name="auto_capture_delay" 
+                                   invisible="capture_manually"/>
+                        </group>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- MobilePay Payment Provider Tree View -->
+        <record id="payment_provider_tree_mobilepay" model="ir.ui.view">
+            <field name="name">payment.provider.tree.mobilepay</field>
+            <field name="model">payment.provider</field>
+            <field name="inherit_id" ref="payment.payment_provider_list"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='code']" position="after">
+                    <field name="show_mobilepay_fields" column_invisible="True"/>
+                    <field name="mobilepay_merchant_serial" 
+                           invisible="not show_mobilepay_fields"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
