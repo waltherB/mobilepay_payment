@@ -26,7 +26,7 @@ Supports both Odoo Enterprise and Community editions.
         "website_sale",
     ],
     "data": [
-        "views/payment_mobilepay_templates.xml",
+        "views/mobilepay_templates.xml",
         "data/payment_provider_data.xml",
         "views/payment_provider_views.xml",
         "views/payment_transaction_views.xml",
