@@ -12,6 +12,12 @@ _logger = logging.getLogger(__name__)
 class PaymentTransaction(models.Model):
     _inherit = "payment.transaction"
 
+    # Register MobilePay as a valid provider code on transactions
+    provider_code = fields.Selection(
+        selection_add=[("mobilepay", "MobilePay")],
+        ondelete={"mobilepay": "set default"},
+    )
+
     show_mobilepay_fields = fields.Boolean(compute="_compute_show_mobilepay_fields")
 
     @api.depends("provider_id.code")
