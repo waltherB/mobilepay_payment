@@ -26,8 +26,10 @@ Supports both Odoo Enterprise and Community editions.
         "website_sale",
     ],
     "data": [
+        "security/ir.model.access.csv",
         "views/mobilepay_templates.xml",
         "data/payment_provider_data.xml",
+        "data/ir_cron_data.xml",
         "views/payment_provider_views.xml",
         "views/payment_transaction_views.xml",
     ],

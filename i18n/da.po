@@ -30,6 +30,11 @@ msgid "Enter your MobilePay phone number."
 msgstr "Indtast dit MobilePay telefonnummer."
 
 #. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.inline_form
+msgid "Pay with MobilePay"
+msgstr "Betal med MobilePay"
+
+#. module: mobilepay_payment
 #. odoo-javascript
 #: code:addons/mobilepay_payment/static/src/js/payment_form.js:0
 msgid "Invalid phone number"
@@ -44,3 +49,23 @@ msgstr "Kode"
 #: model:payment.provider,name:mobilepay_payment.payment_provider_mobilepay
 msgid "MobilePay"
 msgstr "MobilePay"
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Payment initiation failed: %s"
+msgstr "Betalingsinitiering fejlede: %s"
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Only confirmed transactions can be refunded."
+msgstr "Kun bekræftede transaktioner kan refunderes."
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Refund failed: %s"
+msgstr "Refundering fejlede: %s"
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Cancellation failed: %s"
+msgstr "Annullering fejlede: %s"

@@ -135,23 +135,23 @@ class PaymentTransaction(models.Model):
         if not phone_number:
             return None
 
-        # Remove all non-digit characters
-        digits_only = re.sub(r"\D", "", phone_number)
+        # Remove all non-digit characters except leading plus
+        digits_only = re.sub(r"(?!^\+)\D", "", phone_number)
 
-        # Handle Danish phone numbers
-        if digits_only.startswith("45") and len(digits_only) == 10:
-            # Already has country code
-            return f"+{digits_only}"
-        elif len(digits_only) == 8:
+        # If it already starts with + and has a reasonable length, assume it's E.164
+        if digits_only.startswith("+") and 10 <= len(digits_only) <= 15:
+            return digits_only
+
+        # Handle Danish phone numbers specifically if only 8 or 10 digits
+        if len(digits_only) == 8:
             # Add Danish country code
             return f"+45{digits_only}"
+        elif digits_only.startswith("45") and len(digits_only) == 10:
+            # Already has country code but missing plus
+            return f"+{digits_only}"
         elif digits_only.startswith("0045") and len(digits_only) == 12:
             # Remove leading 00 and add +
             return f"+{digits_only[2:]}"
-
-        # If it already starts with +45, validate and return
-        if phone_number.startswith("+45") and len(digits_only) == 10:
-            return phone_number
 
         return None
 
@@ -247,7 +247,7 @@ class PaymentTransaction(models.Model):
             str: Complete URL for payment return
         """
         base_url = self.provider_id.get_base_url()
-        return f"{base_url}/payment/mobilepay/return"
+        return f"{base_url}/payment/mobilepay/return?reference={self.reference}"
 
     def _mobilepay_get_payment_status(self):
         """
