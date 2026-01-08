@@ -297,22 +297,41 @@ class PaymentProvider(models.Model):
             else:
                 provider.mobilepay_webhook_secret_encrypted = False
 
-    @api.constrains('mobilepay_client_id', 'mobilepay_client_secret', 
-                   'mobilepay_subscription_key', 'mobilepay_merchant_serial')
+    @api.constrains('state', 'mobilepay_test_client_id', 'mobilepay_test_client_secret_encrypted',
+                   'mobilepay_test_subscription_key_encrypted', 'mobilepay_test_merchant_serial',
+                   'mobilepay_prod_client_id', 'mobilepay_prod_client_secret_encrypted',
+                   'mobilepay_prod_subscription_key_encrypted', 'mobilepay_prod_merchant_serial')
     def _check_mobilepay_credentials(self):
         """Validate MobilePay credentials format and completeness."""
         for provider in self:
             if provider.code == 'mobilepay':
-                if not all([
-                    provider.mobilepay_client_id,
-                    provider.mobilepay_client_secret,
-                    provider.mobilepay_subscription_key,
-                    provider.mobilepay_merchant_serial
-                ]):
-                    raise ValidationError(_(
-                        "All MobilePay credentials are required: "
-                        "Client ID, Client Secret, Subscription Key, and Merchant Serial Number"
-                    ))
+                # Check credentials based on provider state
+                if provider.state == 'enabled':
+                    # Production mode - check production credentials
+                    if not all([
+                        provider.mobilepay_prod_client_id,
+                        provider.mobilepay_prod_client_secret_encrypted,
+                        provider.mobilepay_prod_subscription_key_encrypted,
+                        provider.mobilepay_prod_merchant_serial
+                    ]):
+                        raise ValidationError(_(
+                            "All MobilePay production credentials are required when provider is enabled: "
+                            "Production Client ID, Production Client Secret, Production Subscription Key, "
+                            "and Production Merchant Serial Number"
+                        ))
+                else:
+                    # Test/Disabled mode - check test credentials
+                    if not all([
+                        provider.mobilepay_test_client_id,
+                        provider.mobilepay_test_client_secret_encrypted,
+                        provider.mobilepay_test_subscription_key_encrypted,
+                        provider.mobilepay_test_merchant_serial
+                    ]):
+                        raise ValidationError(_(
+                            "All MobilePay test credentials are required: "
+                            "Test Client ID, Test Client Secret, Test Subscription Key, "
+                            "and Test Merchant Serial Number"
+                        ))
 
     @api.model
     def _get_compatible_providers(self, *args, currency_id=None, **kwargs):

@@ -77,16 +77,30 @@ class MobilePayAuthService(models.AbstractModel):
 
     def _acquire_new_token(self, provider):
         """Acquire new access token from MobilePay OAuth2 endpoint."""
-        if not provider.mobilepay_client_id or not provider.mobilepay_client_secret:
-            raise UserError(_("MobilePay credentials are not configured properly."))
+        # Ensure computed fields are computed by accessing them
+        provider.ensure_one()
+        
+        # Get credentials - computed fields are automatically computed when accessed
+        client_id = provider.mobilepay_client_id
+        client_secret = provider.mobilepay_client_secret
+        
+        # Check if credentials are properly set (not False, None, or empty)
+        # The computed fields return False when encrypted fields are empty
+        if not client_id or client_id is False or not client_secret or client_secret is False:
+            # Provide helpful error message based on provider state
+            state_msg = "production" if provider.state == 'enabled' else "test"
+            raise UserError(_(
+                "MobilePay %s credentials are not configured properly. "
+                "Please fill in the %s Client ID and Client Secret fields in the payment provider configuration."
+            ) % (state_msg, state_msg.capitalize()))
 
         token_url = f"{provider._mobilepay_get_api_url()}/accesstoken/get"
         
-        # Prepare OAuth2 request data
+        # Prepare OAuth2 request data - ensure all values are strings
         data = {
             'grant_type': 'client_credentials',
-            'client_id': provider.mobilepay_client_id,
-            'client_secret': provider.mobilepay_client_secret,
+            'client_id': str(client_id),
+            'client_secret': str(client_secret),
             'scope': 'epayment'
         }
         
