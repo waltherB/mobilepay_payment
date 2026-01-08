@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 class MockTransaction:
     def __init__(self, reference):
         self.reference = reference
-        self.provider_code = 'mobilepay'
+        self.provider_id = type('MockProvider', (), {'code': 'mobilepay'})()
         self.status_polled = False
         
     def _mobilepay_get_payment_status(self):

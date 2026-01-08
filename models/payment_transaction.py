@@ -12,12 +12,6 @@ _logger = logging.getLogger(__name__)
 class PaymentTransaction(models.Model):
     _inherit = "payment.transaction"
 
-    # Register MobilePay as a valid provider code on transactions
-    provider_code = fields.Selection(
-        selection_add=[("mobilepay", "MobilePay")],
-        ondelete={"mobilepay": "set default"},
-    )
-
     show_mobilepay_fields = fields.Boolean(compute="_compute_show_mobilepay_fields")
 
     @api.depends("provider_id.code")
@@ -75,12 +69,12 @@ class PaymentTransaction(models.Model):
         store=False,
     )
 
-    @api.depends("state", "mobilepay_status", "provider_code")
+    @api.depends("state", "mobilepay_status", "provider_id.code")
     def _compute_capture_eligible(self):
         """Compute whether transaction is eligible for manual capture."""
         for transaction in self:
             transaction.capture_eligible = (
-                transaction.provider_code == "mobilepay"
+                transaction.provider_id.code == "mobilepay"
                 and transaction.state == "authorized"
                 and transaction.mobilepay_status == "RESERVED"
                 and transaction.authorized_amount > 0
@@ -168,7 +162,7 @@ class PaymentTransaction(models.Model):
         """
         self.ensure_one()
 
-        if self.provider_code != "mobilepay":
+        if self.provider_id.code != "mobilepay":
             return super()._send_payment_request()
 
         # Generate idempotency key if not already set
@@ -258,7 +252,7 @@ class PaymentTransaction(models.Model):
             dict: Payment status data
         """
         self.ensure_one()
-        if self.provider_code != "mobilepay" or not self.mobilepay_payment_id:
+        if self.provider_id.code != "mobilepay" or not self.mobilepay_payment_id:
             return None
 
         try:
@@ -329,7 +323,7 @@ class PaymentTransaction(models.Model):
             dict: The result of the capture operation
         """
         self.ensure_one()
-        if self.provider_code != "mobilepay":
+        if self.provider_id.code != "mobilepay":
             return super().action_capture()
 
         if not self.capture_eligible:
@@ -373,7 +367,7 @@ class PaymentTransaction(models.Model):
         status_timeout_min = 5
 
         for tx in self:
-            if tx.provider_code != "mobilepay" or tx.state not in ["draft", "pending"]:
+            if tx.provider_id.code != "mobilepay" or tx.state not in ["draft", "pending"]:
                 continue
 
             # Check if time elapsed < 5 minutes
@@ -392,7 +386,7 @@ class PaymentTransaction(models.Model):
             dict: Refund response data
         """
         self.ensure_one()
-        if self.provider_code != "mobilepay":
+        if self.provider_id.code != "mobilepay":
             return super()._send_refund_request(amount_to_refund)
 
         if self.state != "done":
@@ -463,7 +457,7 @@ class PaymentTransaction(models.Model):
             dict: Cancel response data
         """
         self.ensure_one()
-        if self.provider_code != "mobilepay":
+        if self.provider_id.code != "mobilepay":
             return super()._send_cancel_request()
 
         if not self.mobilepay_payment_id:
@@ -490,7 +484,7 @@ class PaymentTransaction(models.Model):
     def _get_specific_rendering_values(self, processing_values):
         """Override to provide MobilePay-specific rendering values."""
         res = super()._get_specific_rendering_values(processing_values)
-        if self.provider_code != "mobilepay":
+        if self.provider_id.code != "mobilepay":
             return res
 
         # Initiate payment with MobilePay to get the redirect URL

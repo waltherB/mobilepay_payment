@@ -38,7 +38,7 @@ class TestCompliance(unittest.TestCase):
         tx = MagicMock()
         tx.ensure_one = lambda: None
         tx.env = mock_env
-        tx.provider_code = 'mobilepay'
+        tx.provider_id = type('MockProvider', (), {'code': 'mobilepay'})()
         tx.provider_id = mock_provider
         tx.mobilepay_payment_id = 'test_payment_id'
         

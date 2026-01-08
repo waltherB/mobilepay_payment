@@ -66,7 +66,7 @@ class MobilePayController(http.Controller):
             .search(
                 [
                     ("mobilepay_payment_id", "=", payment_id),
-                    ("provider_code", "=", "mobilepay"),
+                    ("provider_id.code", "=", "mobilepay"),
                 ],
                 limit=1,
             )
@@ -213,7 +213,7 @@ class MobilePayController(http.Controller):
                 .search(
                     [
                         ("reference", "=", reference),
-                        ("provider_code", "=", "mobilepay"),
+                        ("provider_id.code", "=", "mobilepay"),
                     ],
                     limit=1,
                 )

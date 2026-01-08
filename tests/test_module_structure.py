@@ -166,7 +166,7 @@ class TestMobilePayModuleStructure(TransactionCase):
         # Create transaction
         transaction = self.PaymentTransaction.create({
             'provider_id': provider.id,
-            'provider_code': 'mobilepay',
+            'reference': 'TEST-001',
             'amount': 100.0,
             'currency_id': self.env.ref('base.DKK').id,
             'reference': 'TEST-001',

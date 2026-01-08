@@ -11,7 +11,7 @@ import datetime
 class SimulatedTransaction:
     def __init__(self, provider_code='mobilepay', state='authorized', 
                  mobilepay_status='RESERVED', amount=100.0, create_date=None):
-        self.provider_code = provider_code
+        self.provider_id = type('MockProvider', (), {'code': provider_code})()
         self.state = state
         self.mobilepay_status = mobilepay_status
         self.amount = amount
@@ -28,7 +28,7 @@ class SimulatedTransaction:
     @property
     def capture_eligible(self):
         return (
-            self.provider_code == 'mobilepay' and
+            self.provider_id.code == 'mobilepay' and
             self.state == 'authorized' and
             self.mobilepay_status == 'RESERVED' and
             self.authorized_amount > 0

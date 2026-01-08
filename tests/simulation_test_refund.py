@@ -11,7 +11,7 @@ import uuid
 class SimulatedTransaction:
     def __init__(self, provider_code='mobilepay', state='done', 
                  amount=100.0, captured_amount=100.0, refunded_amount=0.0):
-        self.provider_code = provider_code
+        self.provider_id = type('MockProvider', (), {'code': provider_code})()
         self.state = state
         self.amount = amount
         self.captured_amount = captured_amount
@@ -35,7 +35,7 @@ class SimulatedTransaction:
     def _send_refund_request(self, amount_to_refund=None):
         print(f"  Action: Refund transaction {self.reference} for {amount_to_refund or 'FULL'}")
         
-        if self.provider_code != 'mobilepay':
+        if self.provider_id.code != 'mobilepay':
             print("    -> Not mobilepay provider, skipping")
             return
             

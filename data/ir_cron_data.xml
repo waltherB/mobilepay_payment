@@ -6,7 +6,7 @@
             <field name="name">MobilePay: Poll Payment Status</field>
             <field name="model_id" ref="model_payment_transaction"/>
             <field name="state">code</field>
-            <field name="code">model.search([('provider_code', '=', 'mobilepay'), ('state', 'in', ['draft', 'pending'])])._mobilepay_retry_poll_status()</field>
+            <field name="code">model.search([('provider_id.code', '=', 'mobilepay'), ('state', 'in', ['draft', 'pending'])])._mobilepay_retry_poll_status()</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">1</field>
             <field name="interval_type">minutes</field>
