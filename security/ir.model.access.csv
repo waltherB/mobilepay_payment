@@ -1,3 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_payment_provider_mobilepay,payment.provider.mobilepay,payment.model_payment_provider,payment.group_payment_manager,1,1,1,1
-access_payment_transaction_mobilepay,payment.transaction.mobilepay,payment.model_payment_transaction,payment.group_payment_manager,1,1,1,1
+access_payment_provider_mobilepay,payment.provider.mobilepay,payment.model_payment_provider,base.group_user,1,1,1,1
+access_payment_transaction_mobilepay,payment.transaction.mobilepay,payment.model_payment_transaction,base.group_user,1,1,1,1
