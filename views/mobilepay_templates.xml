@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="inline_form">
+    <template id="mobilepay_inline_form">
         <div class="o_payment_mobilepay_inline_form">
             <!-- Branding Header -->
             <div class="d-flex align-items-center mb-3 p-2 bg-light rounded border">
@@ -8,10 +8,10 @@
                 <span class="font-weight-bold text-dark">Pay with MobilePay</span>
             </div>
             
-            <label t-attf-for="mobilepay_phone_{{provider_id}}" class="col-form-label">Phone Number</label>
+            <label t-attf-for="mobilepay_phone_#{provider_id}" class="col-form-label">Phone Number</label>
             <input type="text" 
                    name="mobilepay_phone" 
-                   t-attf-id="mobilepay_phone_{{provider_id}}" 
+                   t-attf-id="mobilepay_phone_#{provider_id}" 
                    class="form-control" 
                    placeholder="+45 12 34 56 78"
                    t-att-value="request.env.user.partner_id.phone or request.env.user.partner_id.mobile"/>
@@ -19,7 +19,7 @@
         </div>
     </template>
 
-    <template id="redirect_form">
+    <template id="mobilepay_redirect_form">
         <form t-att-action="api_url" method="get" target="_top">
             <!-- No additional inputs needed for MobilePay redirectUrl -->
         </form>

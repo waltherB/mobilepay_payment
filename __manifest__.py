@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    "name": "MobilePay Payment Provider",
-    "version": "17.0.1.0.0",
+    "version": "17.0.1.1.37",
     "category": "Accounting/Payment Providers",
     "summary": "Payment Provider: MobilePay (Vipps) for Danish market",
     "description": """
@@ -17,18 +16,21 @@ This module integrates Vipps MobilePay ePayment API v3 with Odoo, providing:
 
 Supports both Odoo Enterprise and Community editions.
     """,
-    "author": "Odoo Community",
-    "website": "https://github.com/OCA/payment",
+    "author": "Wather",
+    "website": "Not yet",
     "license": "LGPL-3",
     "depends": [
         "payment",
         "account",
         "website_sale",
+        "stock",
+        "sale_stock",
     ],
     "data": [
         "security/ir.model.access.csv",
         "views/mobilepay_templates.xml",
         "data/payment_provider_data.xml",
+        "data/system_parameters.xml",
         "data/ir_cron_data.xml",
         "views/payment_provider_views.xml",
         "views/payment_transaction_views.xml",

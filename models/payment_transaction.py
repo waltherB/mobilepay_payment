@@ -2,6 +2,7 @@
 
 import uuid
 import re
+import json
 import logging
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -34,6 +35,12 @@ class PaymentTransaction(models.Model):
         string="MobilePay Status",
         help="Current payment status from MobilePay API",
         readonly=True,
+    )
+    mobilepay_api_reference = fields.Char(
+        string="MobilePay API Reference",
+        help="The unique reference used in the MobilePay API calls",
+        readonly=True,
+        index=True,
     )
 
     # Capture Management
@@ -117,36 +124,38 @@ class PaymentTransaction(models.Model):
         """
         return str(uuid.uuid4())
 
-    def _format_phone_number_e164(self, phone_number):
+    def _format_phone_number_v3(self, phone_number):
         """
-        Format phone number to E.164 format for MobilePay API.
+        Format phone number for MobilePay V3 API (digits only, 9-15 chars).
 
         Args:
             phone_number (str): Phone number in various formats
 
         Returns:
-            str: Phone number in E.164 format (+45XXXXXXXX) or None if invalid
+            str: Phone number in digits only (45XXXXXXXX) or None if invalid
         """
         if not phone_number:
             return None
 
-        # Remove all non-digit characters except leading plus
-        digits_only = re.sub(r"(?!^\+)\D", "", phone_number)
+        # Remove all non-digit characters
+        digits_only = re.sub(r"\D", "", phone_number)
 
-        # If it already starts with + and has a reasonable length, assume it's E.164
-        if digits_only.startswith("+") and 10 <= len(digits_only) <= 15:
+        # Handle Danish phone numbers specifically
+        if len(digits_only) == 8:
+            # Add Danish country code (digits only)
+            return f"45{digits_only}"
+        elif digits_only.startswith("0045") and len(digits_only) == 12:
+            # Remove leading 00
+            return digits_only[2:]
+        elif digits_only.startswith("45") and len(digits_only) == 10:
+            # Already has country code
             return digits_only
 
-        # Handle Danish phone numbers specifically if only 8 or 10 digits
-        if len(digits_only) == 8:
-            # Add Danish country code
-            return f"+45{digits_only}"
-        elif digits_only.startswith("45") and len(digits_only) == 10:
-            # Already has country code but missing plus
-            return f"+{digits_only}"
-        elif digits_only.startswith("0045") and len(digits_only) == 12:
-            # Remove leading 00 and add +
-            return f"+{digits_only[2:]}"
+        # Validate digits only (9-15 digits) as per API regex ^\d{9,15}$
+        if 9 <= len(digits_only) <= 15:
+            return digits_only
+
+        return None
 
         return None
 
@@ -172,29 +181,52 @@ class PaymentTransaction(models.Model):
         # Convert amount to øre
         amount_ore = self._convert_dkk_to_ore(self.amount)
 
-        # Format customer phone number if available
-        customer_phone = None
-        if self.partner_phone:
-            customer_phone = self._format_phone_number_e164(self.partner_phone)
-        elif self.partner_id and self.partner_id.phone:
-            customer_phone = self._format_phone_number_e164(self.partner_id.phone)
-        elif self.partner_id and self.partner_id.mobile:
-            customer_phone = self._format_phone_number_e164(self.partner_id.mobile)
+        # Format customer phone number
+        # Priority: 1. Context (from checkout form), 2. Partner phone, 3. Partner mobile
+        raw_phone = self.env.context.get("mobilepay_phone")
+        if not raw_phone and self.partner_id:
+            raw_phone = self.partner_id.phone or self.partner_id.mobile
 
-        # Prepare payment data
+        customer_phone = self._format_phone_number_v3(raw_phone) if raw_phone else None
+
+        _logger.info(
+            f"Initiating MobilePay payment for transaction {self.reference}. Phone: {customer_phone}"
+        )
+
+        # Prepare payment data according to ePayment V3 API specifications
+        # Ensure reference is consistent (min 8 chars) between payload and returnUrl
+        api_reference = self.reference
+        if len(api_reference) < 8:
+            api_reference = f"{api_reference}-TX{self.id}"
+            api_reference = re.sub(r"[^a-zA-Z0-9-]", "", api_reference)
+
+        # Prepare returnUrl (MobilePay V3 requires HTTPS)
+        base_url = self.provider_id.get_base_url().rstrip("/")
+        if base_url.startswith("http://"):
+            _logger.info(
+                "MobilePay: Forcing HTTPS for returnUrl as per V3 requirements"
+            )
+            base_url = base_url.replace("http://", "https://", 1)
+
         payment_data = {
-            "amount": amount_ore,
-            "paymentPointId": self.provider_id.mobilepay_merchant_serial,
-            "redirectUri": self._get_landing_route(),
-            "reference": self.reference,
+            "amount": {
+                "currency": "DKK",
+                "value": amount_ore,
+            },
+            "reference": api_reference,
             "userFlow": "WEB_REDIRECT",
-            "paymentMethod": "MobilePay",
+            "returnUrl": f"{base_url}/payment/mobilepay/return?reference={api_reference}",
+            "paymentMethod": {
+                "type": "WALLET",
+            },
         }
 
         # Add customer information if available
         if self.partner_id:
+            # Strictly clean names for portal compatibility but allow spaces
+            customer_name = re.sub(r"[^a-zA-Z0-9 ]", "", self.partner_id.name or "")
             customer_data = {
-                "name": self.partner_id.name or "",
+                "name": customer_name[:50],
                 "email": self.partner_id.email or "",
             }
 
@@ -204,10 +236,29 @@ class PaymentTransaction(models.Model):
             payment_data["customer"] = customer_data
 
         # Add merchant information
+        merchant_url = self.provider_id.sudo().company_id.website or base_url
+        # If website is dummy or missing, use the system base URL (forced to https)
+        if not merchant_url or "example.com" in merchant_url:
+            merchant_url = base_url
+
+        if merchant_url.startswith("http://"):
+            merchant_url = merchant_url.replace("http://", "https://", 1)
+
+        # Clean merchant name strictly but allow spaces
+        merchant_name = re.sub(
+            r"[^a-zA-Z0-9 ]",
+            "",
+            self.provider_id.sudo().company_id.name or "Odoo Store",
+        )
+
         payment_data["merchantInfo"] = {
-            "merchantContactUrl": self.provider_id.company_id.website or "",
-            "merchantName": self.provider_id.company_id.name or "Odoo Store",
+            "merchantContactUrl": merchant_url,
+            "merchantName": merchant_name[:50],
         }
+
+        _logger.info(
+            f"MobilePay Final Payload for {self.reference}: {json.dumps(payment_data)}"
+        )
 
         try:
             # Send payment request via API client
@@ -218,8 +269,18 @@ class PaymentTransaction(models.Model):
                 idempotency_key=self.mobilepay_idempotency_key,
             )
 
-            # Store MobilePay payment ID
-            self.mobilepay_payment_id = response_data.get("paymentId")
+            self.mobilepay_api_reference = response_data.get("reference")
+
+            # Store MobilePay payment info
+            # In Merchant Test (MT) or some V3 environments, paymentId might be missing from body.
+            # Priority: 1. paymentId (if body has it) 2. reference (for MT environment polling)
+            self.mobilepay_payment_id = (
+                response_data.get("paymentId") or self.mobilepay_api_reference
+            )
+
+            _logger.info(
+                f"MobilePay Initiation for {self.reference}: Stored ID {self.mobilepay_payment_id}"
+            )
             self.authorized_amount = self.amount
 
             # Update transaction state
@@ -234,15 +295,7 @@ class PaymentTransaction(models.Model):
             self._set_error(f"Payment initiation failed: {str(e)}")
             raise UserError(_("Payment initiation failed: %s") % str(e))
 
-    def _get_landing_route(self):
-        """
-        Get the landing route URL for payment return.
-
-        Returns:
-            str: Complete URL for payment return
-        """
-        base_url = self.provider_id.get_base_url()
-        return f"{base_url}/payment/mobilepay/return?reference={self.reference}"
+        return f"{self.provider_id.get_base_url()}/payment/mobilepay/return?reference={self.reference}"
 
     def _mobilepay_get_payment_status(self):
         """
@@ -296,7 +349,7 @@ class PaymentTransaction(models.Model):
             self._set_authorized()
         elif status == "CAPTURED":
             self._set_done()
-        elif status in ["CANCELLED", "EXPIRED", "ABORTED"]:
+        elif status in ["CANCELLED", "EXPIRED", "ABORTED", "TERMINATED"]:
             self._set_canceled()
 
         # Update captured/refunded amounts if present
@@ -333,8 +386,10 @@ class PaymentTransaction(models.Model):
         amount_ore = self._convert_dkk_to_ore(self.amount)
 
         capture_data = {
-            "amount": amount_ore,
-            "description": f"Capture for {self.reference}",
+            "amount": {
+                "currency": "DKK",
+                "value": amount_ore,
+            },
         }
 
         try:
@@ -367,7 +422,10 @@ class PaymentTransaction(models.Model):
         status_timeout_min = 5
 
         for tx in self:
-            if tx.provider_id.code != "mobilepay" or tx.state not in ["draft", "pending"]:
+            if tx.provider_id.code != "mobilepay" or tx.state not in [
+                "draft",
+                "pending",
+            ]:
                 continue
 
             # Check if time elapsed < 5 minutes
@@ -413,8 +471,10 @@ class PaymentTransaction(models.Model):
         amount_ore = self._convert_dkk_to_ore(refund_amount)
 
         refund_data = {
-            "amount": amount_ore,
-            "description": f"Refund for {self.reference}",
+            "amount": {
+                "currency": "DKK",
+                "value": amount_ore,
+            },
         }
 
         try:
@@ -473,6 +533,10 @@ class PaymentTransaction(models.Model):
 
             # Update status
             self.write({"mobilepay_status": "CANCELLED"})
+            # Log response for debugging
+            _logger.info(f"API response (HTTP {response.status_code}): {response.text}")
+            if response.status_code >= 400:
+                _logger.error(f"API error response body: {response.text}")
             self._set_canceled()
 
             return response
@@ -488,7 +552,8 @@ class PaymentTransaction(models.Model):
             return res
 
         # Initiate payment with MobilePay to get the redirect URL
-        payment_response = self._send_payment_request()
+        # Use sudo() to ensure we can build the payload without ACL restrictions on related orders (guest checkout)
+        payment_response = self.sudo()._send_payment_request()
 
         mobilepay_values = {
             "api_url": payment_response.get("redirectUrl"),

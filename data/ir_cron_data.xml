@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data>
         <!-- Cron for MobilePay Transaction Status Polling -->
         <record id="ir_cron_mobilepay_status_poll" model="ir.cron">
             <field name="name">MobilePay: Poll Payment Status</field>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Allow HTTP webhooks for development environment -->
+        <record id="mobilepay_allow_http_webhooks" model="ir.config_parameter">
+            <field name="key">mobilepay.allow_http_webhooks</field>
+            <field name="value">True</field>
+        </record>
+    </data>
+</odoo>

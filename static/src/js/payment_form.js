@@ -3,39 +3,47 @@
 import { _t } from "@web/core/l10n/translation";
 import { PaymentForm } from "@payment/js/payment_form";
 
+console.log("MobilePay: payment_form.js extension active");
+
 PaymentForm.include({
 
     /**
      * Handle MobilePay-specific payment form processing
      * @override
      */
-    /**
-     * Handle MobilePay-specific payment form processing
-     * @override
-     */
     async _processPayment(code, paymentOptionId, flow) {
+        console.log("MobilePay: _processPayment", { code, paymentOptionId, flow });
+
         if (code !== 'mobilepay') {
             return this._super(...arguments);
         }
 
-        // Validate phone number
-        const phoneInput = document.getElementById(`mobilepay_phone_${paymentOptionId}`);
-        if (phoneInput) {
-            const phoneNumber = phoneInput.value;
-            const formattedPhone = this._formatPhoneNumber(phoneNumber);
+        try {
+            // Validate phone number
+            const phoneInput = document.getElementById(`mobilepay_phone_${paymentOptionId}`);
+            if (phoneInput) {
+                const phoneNumber = phoneInput.value;
+                const formattedPhone = this._formatPhoneNumber(phoneNumber);
+                console.log("MobilePay: Phone validation result", { original: phoneNumber, formatted: formattedPhone });
 
-            if (phoneNumber && !formattedPhone) {
-                this._displayError(
-                    _t("Invalid phone number"),
-                    _t("Please enter a valid Danish phone number.")
-                );
-                return;
-            }
+                if (phoneNumber && !formattedPhone) {
+                    this._displayError(
+                        _t("Invalid phone number"),
+                        _t("Please enter a valid Danish phone number (8 digits, optionally with +45).")
+                    );
+                    return; // Stop processing and wait for user to fix
+                }
 
-            // Update input with formatted value for visual feedback
-            if (formattedPhone) {
-                phoneInput.value = formattedPhone;
+                // Update input with formatted value for visual feedback
+                if (formattedPhone) {
+                    phoneInput.value = formattedPhone;
+                }
+            } else {
+                console.warn(`MobilePay: Phone input 'mobilepay_phone_${paymentOptionId}' not found in DOM`);
             }
+        } catch (err) {
+            console.error("MobilePay: Error in _processPayment logic", err);
+            // We don't return here so that the super call still happens
         }
 
         return this._super(...arguments);
@@ -46,11 +54,17 @@ PaymentForm.include({
      * @override
      */
     _prepareTransactionContext(paymentOptionId, flow) {
+        console.log("MobilePay: _prepareTransactionContext", { paymentOptionId, flow });
         const context = this._super(...arguments);
-        const phoneInput = document.getElementById(`mobilepay_phone_${paymentOptionId}`);
 
-        if (phoneInput && phoneInput.value) {
-            context['mobilepay_phone'] = phoneInput.value;
+        try {
+            const phoneInput = document.getElementById(`mobilepay_phone_${paymentOptionId}`);
+            if (phoneInput && phoneInput.value) {
+                context['mobilepay_phone'] = phoneInput.value;
+                console.log("MobilePay: Phone added to context", phoneInput.value);
+            }
+        } catch (err) {
+            console.error("MobilePay: Error in _prepareTransactionContext logic", err);
         }
 
         return context;
@@ -72,26 +86,18 @@ PaymentForm.include({
 
         // Handle Danish phone numbers
         if (cleaned.startsWith('45') && cleaned.length === 10) {
-            // Already has country code (45 + 8 digits)
             return '+' + cleaned;
         } else if (cleaned.length === 8) {
-            // Add Danish country code
             return '+45' + cleaned;
         } else if (cleaned.startsWith('0045') && cleaned.length === 12) {
-            // Remove leading 00 and add +
             return '+' + cleaned.substring(2);
         }
 
-        // Fallback: If it looks like a valid international number or we can't determine,
-        // we might return it as is or try to format.
-        // For E.164, we need +.
-
-        // If the original input started with + and length seems ok (e.g. 10-15 digits)
+        // Fallback for international
         if (phoneNumber.trim().startsWith('+') && cleaned.length >= 10) {
             return '+' + cleaned;
         }
 
-        // If we strictly only support Danish for auto-fix:
-        return ''; // Or return null to indicate invalid/unformatted
+        return '';
     }
 });

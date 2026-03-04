@@ -26,25 +26,29 @@
                             <field name="mobilepay_prod_merchant_serial"/>
                         </group>
                         <group string="Webhook Configuration" name="webhook_config">
-                            <field name="mobilepay_webhook_id" readonly="1"/>
-                            <field name="mobilepay_webhook_secret" password="True" readonly="1"/>
-                            <div class="oe_button_box">
-                                <button name="action_register_webhook" 
-                                        string="Register Webhook" 
-                                        type="object" 
-                                        class="btn-primary"
-                                        invisible="mobilepay_webhook_id"/>
-                                <button name="action_unregister_webhook" 
-                                        string="Unregister Webhook" 
-                                        type="object" 
-                                        class="btn-secondary"
-                                        invisible="not mobilepay_webhook_id"/>
-                            </div>
+                            <field name="mobilepay_webhook_id"/>
+                            <field name="mobilepay_webhook_secret" password="True"/>
+                            <button name="action_register_webhook" 
+                                    string="Register Webhook" 
+                                    type="object" 
+                                    class="btn-primary"
+                                    invisible="mobilepay_webhook_id"/>
+                            <button name="action_unregister_webhook" 
+                                    string="Unregister Webhook" 
+                                    type="object" 
+                                    class="btn-secondary"
+                                    invisible="not mobilepay_webhook_id"/>
+                        </group>
+                        <group string="Configuration" name="mobilepay_config">
+                            <field name="is_published"/>
+                            <field name="website_id" groups="website.group_multi_website"/>
                         </group>
                         <group string="Payment Flow Settings" name="payment_flow">
                             <field name="capture_manually"/>
                             <field name="auto_capture_delay" 
                                    invisible="capture_manually"/>
+                            <field name="capture_on_delivery"
+                                   invisible="not capture_manually"/>
                         </group>
                     </group>
                 </xpath>
@@ -61,6 +65,11 @@
                     <field name="show_mobilepay_fields" column_invisible="True"/>
                     <field name="mobilepay_merchant_serial" 
                            invisible="not show_mobilepay_fields"/>
+                    <field name="is_published"
+                           invisible="not show_mobilepay_fields"/>
+                    <field name="website_id"
+                           invisible="not show_mobilepay_fields"
+                           groups="website.group_multi_website"/>
                 </xpath>
             </field>
         </record>

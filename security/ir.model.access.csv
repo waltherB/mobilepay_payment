@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_payment_provider_mobilepay,payment.provider.mobilepay,payment.model_payment_provider,base.group_user,1,1,1,1
 access_payment_transaction_mobilepay,payment.transaction.mobilepay,payment.model_payment_transaction,base.group_user,1,1,1,1
+access_payment_provider_public,payment.provider.public,payment.model_payment_provider,base.group_public,1,0,0,0
+access_payment_transaction_public,payment.transaction.public,payment.model_payment_transaction,base.group_public,1,0,0,0
