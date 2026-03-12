@@ -110,6 +110,17 @@ class PaymentProvider(models.Model):
         for provider in self:
             provider.show_mobilepay_fields = provider.code == "mobilepay"
 
+    def _compute_feature_support_fields(self):
+        """Override of `payment` to enable additional features."""
+        super()._compute_feature_support_fields()
+        self.filtered(lambda p: p.code == "mobilepay").update(
+            {
+                "support_manual_capture": "partial",
+                "support_refund": "partial",
+                "support_tokenization": False,
+            }
+        )
+
     # ===== Test Environment Credentials =====
     mobilepay_test_client_id = fields.Char(
         string="Test Client ID", help="MobilePay Test API Client ID"
