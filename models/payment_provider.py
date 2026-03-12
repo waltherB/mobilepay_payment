@@ -736,8 +736,15 @@ class PaymentProvider(models.Model):
             resp = api_client._make_request(self, "GET", "/webhooks/v1/webhooks")
             data = api_client._handle_response(resp)
             
-            # Ensure data is a list for iteration
-            webhooks = data if isinstance(data, list) else ([data] if isinstance(data, dict) and data.get("id") else [])
+            _logger.info(f"MobilePay: RAW Webhook API data: {json.dumps(data)}")
+            
+            # Vipps v1 returns a list or a dict with 'webhooks' key
+            if isinstance(data, list):
+                webhooks = data
+            elif isinstance(data, dict):
+                webhooks = data.get("webhooks") or ([data] if data.get("id") else [])
+            else:
+                webhooks = []
             
             _logger.info(f"MobilePay: Registered Webhooks for MSN {self.mobilepay_merchant_serial}: {json.dumps(webhooks, indent=2)}")
             
