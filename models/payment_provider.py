@@ -724,11 +724,15 @@ class PaymentProvider(models.Model):
         self.ensure_one()
         api_client = self.env["mobilepay.api.client"]
         try:
-            webhooks = api_client._make_request(self, "GET", "/webhooks/v1/webhooks")
-            data = api_client._handle_response(webhooks)
-            _logger.info(f"MobilePay: Registered Webhooks for MSN {self.mobilepay_merchant_serial}: {json.dumps(data, indent=2)}")
+            resp = api_client._make_request(self, "GET", "/webhooks/v1/webhooks")
+            data = api_client._handle_response(resp)
             
-            message = _("Found %s registered webhooks. Check Odoo logs for details.") % len(data)
+            # Ensure data is a list for iteration
+            webhooks = data if isinstance(data, list) else ([data] if isinstance(data, dict) and data.get("id") else [])
+            
+            _logger.info(f"MobilePay: Registered Webhooks for MSN {self.mobilepay_merchant_serial}: {json.dumps(webhooks, indent=2)}")
+            
+            message = _("Found %s registered webhooks. Check Odoo logs for details.") % len(webhooks)
             return {
                 "type": "ir.actions.client",
                 "tag": "display_notification",
@@ -747,14 +751,16 @@ class PaymentProvider(models.Model):
         api_client = self.env["mobilepay.api.client"]
         try:
             webhooks_resp = api_client._make_request(self, "GET", "/webhooks/v1/webhooks")
-            webhooks = api_client._handle_response(webhooks_resp)
+            data = api_client._handle_response(webhooks_resp)
+            
+            # Robustly handle list vs single dict response
+            webhooks = data if isinstance(data, list) else ([data] if isinstance(data, dict) and data.get("id") else [])
             
             count = 0
             for wh in webhooks:
+                if not isinstance(wh, dict):
+                    continue
                 wh_id = wh.get("id")
-                # Optional: Skip the one we have stored if we want to keep it
-                # if wh_id == self.mobilepay_webhook_id: continue
-                
                 api_client.unregister_webhook(self, wh_id)
                 count += 1
             
