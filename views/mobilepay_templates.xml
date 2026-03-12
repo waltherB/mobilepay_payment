@@ -4,7 +4,7 @@
         <div class="o_payment_mobilepay_inline_form">
             <!-- Branding Header -->
             <div class="d-flex align-items-center mb-3 p-2 bg-light rounded border">
-                <img src="/mobilepay_payment/static/img/mobilepay_icon.png" alt="MobilePay Logo" style="height: 24px; margin-right: 10px;"/>
+                <img t-att-src="'/mobilepay_payment/static/img/mobilepay_icon.png'" alt="MobilePay Logo" style="height: 24px; margin-right: 10px;"/>
                 <span class="font-weight-bold text-dark">Pay with MobilePay</span>
             </div>
             
