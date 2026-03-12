@@ -38,6 +38,18 @@
                                     type="object" 
                                     class="btn-secondary"
                                     invisible="not mobilepay_webhook_id"/>
+                            <group string="Diagnostic Tools" colspan="2" name="diagnostic_tools" class="mt-2 border-top">
+                                <p class="text-muted small">Use these tools to resolve signature issues if multiple webhooks are active.</p>
+                                <button name="action_list_webhooks" 
+                                        string="List Active Webhooks" 
+                                        type="object" 
+                                        class="btn-info me-2"/>
+                                <button name="action_unregister_all_webhooks" 
+                                        string="CLEAN ALL WEBHOOKS" 
+                                        type="object" 
+                                        class="btn-danger"
+                                        confirm="This will unregister ALL webhooks from MobilePay/Vipps for this MSN. Use with caution!"/>
+                            </group>
                         </group>
                         <group string="Configuration" name="mobilepay_config">
                             <field name="is_published"/>
