@@ -1,0 +1,54 @@
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Odoo specific
+*.db
+*.sqlite
+filestore/
+.sessions/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Local configuration - CRITICAL for security!
+/config/
+/odoo.conf
+*.conf
+
+# Docker related (if using Docker for development)
+.docker/
+docker-compose.override.yml
+*.log
+
+# Virtual environments
+venv/
+env/
+.env
+*.venv
+.venv
+ENV/
+env.bak/
+venv.bak/
+
+# Logs and databases
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Project specific - ignore module folders if they're external
+# Uncomment the line below if you have external addons folders
+# /addons_external/
+
+# Backup files
+*.bak
+*.orig
