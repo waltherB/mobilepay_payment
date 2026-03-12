@@ -18,8 +18,8 @@ class PaymentProvider(models.Model):
 
     capture_manually = fields.Boolean(
         string="Manual Capture",
-        help="Enable manual capture for authorize & capture flow",
-        default=True,
+        default=False,
+        help="Capture payment manually after authorization.",
     )
     auto_capture_delay = fields.Integer(
         string="Auto Capture Delay (hours)",
@@ -31,6 +31,17 @@ class PaymentProvider(models.Model):
         help="Automatically capture authorized payments when the related delivery order is validated.",
         default=False,
     )
+    
+    mobilepay_logic_version = fields.Char(
+        string="Logic Version",
+        compute="_compute_mobilepay_logic_version",
+        help="Diagnostic version of the MobilePay integration logic.",
+    )
+
+    @api.depends("code")
+    def _compute_mobilepay_logic_version(self):
+        for provider in self:
+            provider.mobilepay_logic_version = "v42.2-Robust"
 
     def _sanitize_value(self, value):
         """Remove invisible characters and whitespace from credentials."""

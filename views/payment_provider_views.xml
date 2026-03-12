@@ -11,6 +11,8 @@
                     <field name="show_mobilepay_fields" invisible="1"/>
                     <group name="mobilepay_credentials" 
                            invisible="not show_mobilepay_fields">
+                        <field name="mobilepay_logic_version" readonly="1" 
+                               font="bold" class="text-primary h5 font-weight-bold mb-3"/>
                         <group string="Test Environment Credentials" name="test_credentials"
                                invisible="state == 'enabled'">
                             <field name="mobilepay_test_client_id"/>
@@ -28,28 +30,34 @@
                         <group string="Webhook Configuration" name="webhook_config">
                             <field name="mobilepay_webhook_id"/>
                             <field name="mobilepay_webhook_secret" password="True"/>
-                            <button name="action_register_webhook" 
-                                    string="Register Webhook" 
-                                    type="object" 
-                                    class="btn-primary"
-                                    invisible="mobilepay_webhook_id"/>
-                            <button name="action_unregister_webhook" 
-                                    string="Unregister Webhook" 
-                                    type="object" 
-                                    class="btn-secondary"
-                                    invisible="not mobilepay_webhook_id"/>
-                            <group string="Diagnostic Tools" colspan="2" name="diagnostic_tools" class="mt-2 border-top">
-                                <p class="text-muted small">Use these tools to resolve signature issues if multiple webhooks are active.</p>
-                                <button name="action_list_webhooks" 
-                                        string="List Active Webhooks" 
+                            <div class="oe_edit_only" colspan="2">
+                                <button name="action_register_webhook" 
+                                        string="Register Webhook" 
                                         type="object" 
-                                        class="btn-info me-2"/>
-                                <button name="action_unregister_all_webhooks" 
-                                        string="CLEAN ALL WEBHOOKS" 
+                                        class="btn-primary me-2"
+                                        invisible="mobilepay_webhook_id"/>
+                                <button name="action_unregister_webhook" 
+                                        string="Unregister Webhook" 
                                         type="object" 
-                                        class="btn-danger"
-                                        confirm="This will unregister ALL webhooks from MobilePay/Vipps for this MSN. Use with caution!"/>
-                            </group>
+                                        class="btn-secondary"
+                                        invisible="not mobilepay_webhook_id"/>
+                            </div>
+                        </group>
+                        
+                        <group string="Diagnostic / Recovery Tools" name="diagnostic_tools" class="oe_edit_only">
+                            <p class="text-muted small" colspan="2">
+                                These tools help fix "Signature Verification Failed" errors by cleaning up duplicate webhooks.
+                            </p>
+                            <button name="action_list_webhooks" 
+                                    string="List All Active Webhooks" 
+                                    type="object" 
+                                    class="btn-link"
+                                    help="Logs all webhooks registered on the MobilePay server for this MSN."/>
+                            <button name="action_unregister_all_webhooks" 
+                                    string="FORCE CLEAN ALL WEBHOOKS" 
+                                    type="object" 
+                                    class="btn-danger"
+                                    confirm="Are you sure? This will remove ALL webhook registrations from MobilePay/Vipps for this MSN."/>
                         </group>
                         <group string="Configuration" name="mobilepay_config">
                             <field name="is_published"/>
