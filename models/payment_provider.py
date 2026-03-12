@@ -54,6 +54,7 @@ class PaymentProvider(models.Model):
             "mobilepay_prod_client_secret",
             "mobilepay_prod_subscription_key",
             "mobilepay_prod_merchant_serial",
+            "mobilepay_webhook_secret",
         ]:
             if field in values:
                 values[field] = self._sanitize_value(values[field])
@@ -705,3 +706,57 @@ class PaymentProvider(models.Model):
             api_client.unregister_webhook(self, self.mobilepay_webhook_id)
         except Exception as e:
             raise UserError(_("Error unregistering webhook: %s") % str(e))
+
+    def action_list_webhooks(self):
+        """Fetch and log all registered webhooks for this MSN from the API."""
+        self.ensure_one()
+        api_client = self.env["mobilepay.api.client"]
+        try:
+            webhooks = api_client._make_request(self, "GET", "/webhooks/v1/webhooks")
+            data = api_client._handle_response(webhooks)
+            _logger.info(f"MobilePay: Registered Webhooks for MSN {self.mobilepay_merchant_serial}: {json.dumps(data, indent=2)}")
+            
+            message = _("Found %s registered webhooks. Check Odoo logs for details.") % len(data)
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Webhook List"),
+                    "message": message,
+                    "type": "info",
+                },
+            }
+        except Exception as e:
+            raise UserError(_("Failed to fetch webhooks: %s") % str(e))
+
+    def action_unregister_all_webhooks(self):
+        """Unregister ALL webhooks for this MSN except potentially the current one."""
+        self.ensure_one()
+        api_client = self.env["mobilepay.api.client"]
+        try:
+            webhooks_resp = api_client._make_request(self, "GET", "/webhooks/v1/webhooks")
+            webhooks = api_client._handle_response(webhooks_resp)
+            
+            count = 0
+            for wh in webhooks:
+                wh_id = wh.get("id")
+                # Optional: Skip the one we have stored if we want to keep it
+                # if wh_id == self.mobilepay_webhook_id: continue
+                
+                api_client.unregister_webhook(self, wh_id)
+                count += 1
+            
+            # Clear local state as well
+            self.write({"mobilepay_webhook_id": False, "mobilepay_webhook_secret": False})
+            
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Webhooks Cleaned"),
+                    "message": _("Successfully unregistered %s webhooks.") % count,
+                    "type": "success",
+                },
+            }
+        except Exception as e:
+            raise UserError(_("Failed to clean webhooks: %s") % str(e))
