@@ -172,6 +172,7 @@ class MobilePayController(http.Controller):
 
             msg_webhook_id = headers.get("Webhook-Id")
             stored_webhook_id = provider_sudo.mobilepay_webhook_id
+            msn = data.get("msn") or provider_sudo.mobilepay_merchant_serial
             
             _logger.info(
                 f"MobilePay Webhook Trace: MSN={msn}, "
