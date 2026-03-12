@@ -159,6 +159,12 @@ class MobilePayController(http.Controller):
             )
 
         if provider_sudo:
+            # 4. Verify Signature
+            path = request.httprequest.path
+            query = request.httprequest.query_string.decode("utf-8")
+            if query:
+                path = f"{path}?{query}"
+
             # Comprehensive Header Logging for diagnostics
             _logger.info("MobilePay Webhook: Incoming Headers:")
             for key, value in headers.items():
@@ -228,8 +234,6 @@ class MobilePayController(http.Controller):
             return False
 
         headers = request.httprequest.headers
-        webhook_id = (headers.get("Webhook-Id") or "").strip()
-
         try:
             # 1. Verify content hash
             calculated_hash_bytes = base64.b64encode(hashlib.sha256(payload).digest())
@@ -293,8 +297,7 @@ class MobilePayController(http.Controller):
 
             # Case-insensitive header access via Werkzeug Headers object
             headers = request.httprequest.headers
-            # Case-insensitive header access via Werkzeug Headers object
-            headers = request.httprequest.headers
+            host_val = headers.get("host") or ""
 
             # RFC compliance: lowercase host in signature string
             host_val = host_val.lower()
