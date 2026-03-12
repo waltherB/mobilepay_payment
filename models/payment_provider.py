@@ -769,16 +769,22 @@ class PaymentProvider(models.Model):
             webhooks_resp = api_client._make_request(self, "GET", "/webhooks/v1/webhooks")
             data = api_client._handle_response(webhooks_resp)
             
-            # Robustly handle list vs single dict response
-            webhooks = data if isinstance(data, list) else ([data] if isinstance(data, dict) and data.get("id") else [])
+            # Vipps v1 returns a list or a dict with 'webhooks' key
+            if isinstance(data, list):
+                webhooks = data
+            elif isinstance(data, dict):
+                webhooks = data.get("webhooks") or ([data] if data.get("id") else [])
+            else:
+                webhooks = []
             
             count = 0
             for wh in webhooks:
                 if not isinstance(wh, dict):
                     continue
                 wh_id = wh.get("id")
-                api_client.unregister_webhook(self, wh_id)
-                count += 1
+                if wh_id:
+                    api_client.unregister_webhook(self, wh_id)
+                    count += 1
             
             # Clear local state as well
             self.write({"mobilepay_webhook_id": False, "mobilepay_webhook_secret": False})
@@ -794,3 +800,36 @@ class PaymentProvider(models.Model):
             }
         except Exception as e:
             raise UserError(_("Failed to clean webhooks: %s") % str(e))
+
+    def action_force_unregister_stored_webhook(self):
+        """Force unregister the currently stored webhook ID, even if not in the list."""
+        self.ensure_one()
+        if not self.mobilepay_webhook_id:
+            raise UserError(_("No webhook ID stored to unregister."))
+        
+        api_client = self.env["mobilepay.api.client"]
+        try:
+            api_client.unregister_webhook(self, self.mobilepay_webhook_id)
+            self.write({"mobilepay_webhook_id": False, "mobilepay_webhook_secret": False})
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Webhook Forced Out"),
+                    "message": _("Attempted to unregister stored ID and cleared local state."),
+                    "type": "warning",
+                },
+            }
+        except Exception as e:
+            # Still clear local state even if API fails (maybe it's already gone)
+            self.write({"mobilepay_webhook_id": False, "mobilepay_webhook_secret": False})
+            _logger.warning(f"MobilePay: Failed to unregister stored webhook via API (expected if already gone): {e}")
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Local State Cleared"),
+                    "message": _("API unregistration failed, but Odoo credentials were cleared."),
+                    "type": "info",
+                },
+            }

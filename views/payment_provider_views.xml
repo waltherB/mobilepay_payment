@@ -58,6 +58,12 @@
                                     type="object" 
                                     class="btn-danger"
                                     confirm="Are you sure? This will remove ALL webhook registrations from MobilePay/Vipps for this MSN."/>
+                            <button name="action_force_unregister_stored_webhook"
+                                    string="Wipe Local Webhook Credentials"
+                                    type="object"
+                                    class="btn-secondary"
+                                    invisible="not mobilepay_webhook_id"
+                                    help="Clears the Webhook ID and Secret from Odoo manually."/>
                         </group>
                         <group string="Configuration" name="mobilepay_config">
                             <field name="is_published"/>
