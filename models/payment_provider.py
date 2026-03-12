@@ -111,6 +111,15 @@ class PaymentProvider(models.Model):
                 values["mobilepay_prod_subscription_key_encrypted"] = False
             del values["mobilepay_prod_subscription_key"]
 
+        if "mobilepay_webhook_secret" in values:
+            if values["mobilepay_webhook_secret"]:
+                values["mobilepay_webhook_secret_encrypted"] = self._encrypt(
+                    values["mobilepay_webhook_secret"]
+                )
+            else:
+                values["mobilepay_webhook_secret_encrypted"] = False
+            del values["mobilepay_webhook_secret"]
+
         return super().write(values)
 
     show_mobilepay_fields = fields.Boolean(

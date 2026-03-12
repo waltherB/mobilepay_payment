@@ -170,7 +170,23 @@ class MobilePayController(http.Controller):
             for key, value in headers.items():
                 _logger.info(f"  {key}: {value}")
 
-            webhook_id = headers.get("Webhook-Id", "N/A")
+            msg_webhook_id = headers.get("Webhook-Id")
+            stored_webhook_id = provider_sudo.mobilepay_webhook_id
+            
+            _logger.info(
+                f"MobilePay Webhook Trace: MSN={msn}, "
+                f"Incoming ID={msg_webhook_id}, "
+                f"Stored ID={stored_webhook_id}, "
+                f"Has Secret={'YES' if provider_sudo.mobilepay_webhook_secret else 'NO'}"
+            )
+
+            if msg_webhook_id and stored_webhook_id and msg_webhook_id != stored_webhook_id:
+                _logger.warning(
+                    f"MobilePay Webhook: Received notification for unrecognized/legacy ID {msg_webhook_id}. "
+                    f"Current active ID is {stored_webhook_id}. Ignoring to avoid signature mismatch."
+                )
+                return request.make_response("Accepted Legacy", status=202)
+
             signature_valid = self._verify_signature(
                 raw_data,
                 auth_header,
@@ -187,7 +203,7 @@ class MobilePayController(http.Controller):
                 )
                 raise Forbidden("Invalid signature")
             else:
-                _logger.info(f"✅ MobilePay Webhook: Signature verified for {payment_id} (Webhook-Id: {webhook_id})")
+                _logger.info(f"✅ MobilePay Webhook: Signature verified for {payment_id} (Webhook-Id: {msg_webhook_id})")
 
         # 5. Handle Race Conditions / Transaction Not Found
         if not tx_sudo:
