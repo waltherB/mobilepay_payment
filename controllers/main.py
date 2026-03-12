@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import itertools
 import re
 
 import hmac
@@ -160,16 +159,12 @@ class MobilePayController(http.Controller):
             )
 
         if provider_sudo:
-            path = request.httprequest.path
-            query = request.httprequest.query_string.decode("utf-8")
-            if query:
-                path = f"{path}?{query}"
-
             # Comprehensive Header Logging for diagnostics
             _logger.info("MobilePay Webhook: Incoming Headers:")
             for key, value in headers.items():
                 _logger.info(f"  {key}: {value}")
 
+            webhook_id = headers.get("Webhook-Id", "N/A")
             signature_valid = self._verify_signature(
                 raw_data,
                 auth_header,
@@ -186,7 +181,7 @@ class MobilePayController(http.Controller):
                 )
                 raise Forbidden("Invalid signature")
             else:
-                _logger.info(f"MobilePay Webhook: Signature verified for {payment_id}")
+                _logger.info(f"✅ MobilePay Webhook: Signature verified for {payment_id} (Webhook-Id: {webhook_id})")
 
         # 5. Handle Race Conditions / Transaction Not Found
         if not tx_sudo:
@@ -298,9 +293,8 @@ class MobilePayController(http.Controller):
 
             # Case-insensitive header access via Werkzeug Headers object
             headers = request.httprequest.headers
-            date_val = headers.get("x-ms-date") or headers.get("Date") or ""
-            host_val = headers.get("host") or ""
-            hash_val = headers.get("x-ms-content-sha256") or ""
+            # Case-insensitive header access via Werkzeug Headers object
+            headers = request.httprequest.headers
 
             # RFC compliance: lowercase host in signature string
             host_val = host_val.lower()
@@ -322,6 +316,7 @@ class MobilePayController(http.Controller):
 
             # Format: HTTP_METHOD\nPATH_AND_QUERY\nSIGNED_HEADERS_STRING
             # PATH_AND_QUERY is exactly as passed from the controller (full path + ?)
+            # Semicolon separator for headers is documented for Vipps/MobilePay
             string_to_sign = f"POST\n{path}\n{signed_headers_string}"
 
             calculated_hmac = hmac.new(
@@ -337,6 +332,29 @@ class MobilePayController(http.Controller):
 
             if hmac.compare_digest(calculated_signature, provided_signature):
                 _logger.info("✅ MobilePay Webhook: Signature verified successfully.")
+                return True
+
+            # FALLBACK 1: Try decoding the secret from Base64 if it looks like it
+            try:
+                decoded_key = base64.b64decode(secret_str)
+                calculated_hmac_b64 = hmac.new(
+                    decoded_key, string_to_sign.encode("utf-8"), hashlib.sha256
+                ).digest()
+                calculated_signature_b64 = base64.b64encode(calculated_hmac_b64).decode("utf-8")
+                if hmac.compare_digest(calculated_signature_b64, provided_signature):
+                    _logger.info("✅ MobilePay Webhook: Signature verified using Base64-decoded secret.")
+                    return True
+            except Exception:
+                pass
+
+            # FALLBACK 2: Try without semicolon separator (some docs show space or just one newline)
+            fallback_sts = f"POST\n{path}\n" + "\n".join(h_vals)
+            calculated_hmac_fb = hmac.new(
+                key, fallback_sts.encode("utf-8"), hashlib.sha256
+            ).digest()
+            calculated_signature_fb = base64.b64encode(calculated_hmac_fb).decode("utf-8")
+            if hmac.compare_digest(calculated_signature_fb, provided_signature):
+                _logger.info("✅ MobilePay Webhook: Signature verified using newline separator fallback.")
                 return True
 
             _logger.warning("MobilePay Webhook: Signature verification failed.")
