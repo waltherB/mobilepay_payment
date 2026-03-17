@@ -176,13 +176,14 @@ class MobilePayController(http.Controller):
             
             _logger.info(
                 f"MobilePay Webhook Trace: MSN={msn}, "
-                f"Message ID={msg_webhook_id}, "
-                f"Registered Webhook ID={stored_webhook_id}, "
+                f"Incoming ID={msg_webhook_id}, "
+                f"Stored ID={stored_webhook_id}, "
                 f"Has Secret={'YES' if provider_sudo.mobilepay_webhook_secret else 'NO'}"
             )
 
-            # Note: Webhook-Id header is a unique message ID for each notification (for idempotency),
-            # not the webhook registration ID. Don't reject based on this mismatch.
+            # Note: Webhook-Id header is a unique message ID (for idempotency), 
+            # NOT the registration ID (stored_webhook_id). We do NOT reject based on this mismatch.
+            # This follows the Vipps/MobilePay ePayment API specification.
 
             signature_valid = self._verify_signature(
                 raw_data,
