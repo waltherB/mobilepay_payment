@@ -115,13 +115,19 @@ class PaymentTransaction(models.Model):
             return 0.0
         return float(amount_ore) / 100.0
 
-    def _generate_idempotency_key(self):
+    def _generate_idempotency_key(self, api_reference=None):
         """
         Generate unique idempotency key for MobilePay API requests.
+        If an api_reference is provided, generate a deterministic UUID.
+
+        Args:
+            api_reference (str, optional): The checkout reference.
 
         Returns:
             str: Unique idempotency key
         """
+        if api_reference:
+            return str(uuid.uuid5(uuid.NAMESPACE_OID, str(api_reference)))
         return str(uuid.uuid4())
 
     def _format_phone_number_v3(self, phone_number):
@@ -174,9 +180,16 @@ class PaymentTransaction(models.Model):
         if self.provider_id.code != "mobilepay":
             return super()._send_payment_request()
 
+        # Prepare payment data according to ePayment V3 API specifications
+        # Ensure reference is consistent (min 8 chars) between payload and returnUrl
+        api_reference = self.reference
+        if len(api_reference) < 8:
+            api_reference = f"{api_reference}-TX{self.id}"
+            api_reference = re.sub(r"[^a-zA-Z0-9-]", "", api_reference)
+
         # Generate idempotency key if not already set
         if not self.mobilepay_idempotency_key:
-            self.mobilepay_idempotency_key = self._generate_idempotency_key()
+            self.mobilepay_idempotency_key = self._generate_idempotency_key(api_reference)
 
         # Convert amount to øre
         amount_ore = self._convert_dkk_to_ore(self.amount)
@@ -192,13 +205,6 @@ class PaymentTransaction(models.Model):
         _logger.info(
             f"Initiating MobilePay payment for transaction {self.reference}. Phone: {customer_phone}"
         )
-
-        # Prepare payment data according to ePayment V3 API specifications
-        # Ensure reference is consistent (min 8 chars) between payload and returnUrl
-        api_reference = self.reference
-        if len(api_reference) < 8:
-            api_reference = f"{api_reference}-TX{self.id}"
-            api_reference = re.sub(r"[^a-zA-Z0-9-]", "", api_reference)
 
         # Prepare returnUrl (MobilePay V3 requires HTTPS)
         base_url = self.provider_id.get_base_url().rstrip("/")
