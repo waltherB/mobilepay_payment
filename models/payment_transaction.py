@@ -236,7 +236,8 @@ class PaymentTransaction(models.Model):
                 "email": self.partner_id.email or "",
             }
 
-            if customer_phone:
+            # Only send phone number in production to avoid MT landing page crashes with unregistered test numbers
+            if customer_phone and self.provider_id.state == "enabled":
                 customer_data["phoneNumber"] = customer_phone
 
             payment_data["customer"] = customer_data
