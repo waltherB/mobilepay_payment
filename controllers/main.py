@@ -141,9 +141,9 @@ class MobilePayController(http.Controller):
         # 4. Verify Signature (Must happen before any logic returns)
         # If we didn't find the transaction yet (race condition), we find the provider by MSN
         provider_sudo = tx_sudo.provider_id if tx_sudo else None
-        if not provider_sudo and data.get("msn"):
+        msn = data.get("merchantSerialNumber") or data.get("msn")
+        if not provider_sudo and msn:
             # Search using STORED fields to avoid non-stored search error
-            msn = data.get("msn")
             provider_sudo = (
                 request.env["payment.provider"]
                 .sudo()
@@ -172,7 +172,7 @@ class MobilePayController(http.Controller):
 
             msg_webhook_id = headers.get("Webhook-Id")
             stored_webhook_id = provider_sudo.mobilepay_webhook_id
-            msn = data.get("msn") or provider_sudo.mobilepay_merchant_serial
+            msn = data.get("merchantSerialNumber") or data.get("msn") or provider_sudo.mobilepay_merchant_serial
             
             _logger.info(
                 f"MobilePay Webhook Trace: MSN={msn}, "
@@ -212,9 +212,9 @@ class MobilePayController(http.Controller):
                 return request.make_response("OK", status=200)
 
             _logger.warning(
-                f"MobilePay Webhook: Transaction not found for paymentId {payment_id}"
+                f"MobilePay Webhook: Transaction not found for paymentId {payment_id}. Returning 404 to trigger retry."
             )
-            return request.make_response("OK", status=200)
+            return request.make_response("Not Found", status=404)
 
         # Process Webhook Event
         _logger.info(
