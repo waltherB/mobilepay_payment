@@ -554,6 +554,7 @@ class PaymentTransaction(models.Model):
 
     def _get_specific_rendering_values(self, processing_values):
         """Override to provide MobilePay-specific rendering values."""
+        _logger.warning("MOBILEPAY REDIRECT FIX IS LOADED AND RUNNING!")
         res = super()._get_specific_rendering_values(processing_values)
         if self.provider_id.code != "mobilepay":
             return res
@@ -574,5 +575,7 @@ class PaymentTransaction(models.Model):
         # Add all query parameters (like token) to rendering values
         for key, value in parse_qsl(parsed_url.query):
             mobilepay_values[key] = value
+            
+        _logger.warning("MOBILEPAY RENDER DICT: %s" % mobilepay_values)
 
         return {**res, **mobilepay_values}
