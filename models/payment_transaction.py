@@ -554,9 +554,17 @@ class PaymentTransaction(models.Model):
         # Initiate payment with MobilePay to get the redirect URL
         # Use sudo() to ensure we can build the payload without ACL restrictions on related orders (guest checkout)
         payment_response = self.sudo()._send_payment_request()
+        
+        redirect_url = payment_response.get("redirectUrl")
+        from werkzeug.urls import url_parse
+        parsed_url = url_parse(redirect_url)
 
         mobilepay_values = {
-            "api_url": payment_response.get("redirectUrl"),
+            "api_url": parsed_url.base_url or redirect_url,
         }
+        
+        # Add all query parameters (like token) to rendering values
+        for key, value in parsed_url.decode_query().items():
+            mobilepay_values[key] = value
 
         return {**res, **mobilepay_values}

@@ -21,7 +21,9 @@
 
     <template id="mobilepay_redirect_form">
         <form t-att-action="api_url" method="get" target="_top">
-            <!-- No additional inputs needed for MobilePay redirectUrl -->
+            <t t-if="token">
+                <input type="hidden" name="token" t-att-value="token"/>
+            </t>
         </form>
     </template>
 </odoo>
