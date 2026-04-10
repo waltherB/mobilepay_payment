@@ -563,15 +563,16 @@ class PaymentTransaction(models.Model):
         payment_response = self.sudo()._send_payment_request()
         
         redirect_url = payment_response.get("redirectUrl")
-        from werkzeug.urls import url_parse
-        parsed_url = url_parse(redirect_url)
+        
+        from urllib.parse import urlparse, parse_qsl
+        parsed_url = urlparse(redirect_url)
 
         mobilepay_values = {
             "api_url": redirect_url.split("?")[0],
         }
         
         # Add all query parameters (like token) to rendering values
-        for key, value in parsed_url.decode_query().items():
+        for key, value in parse_qsl(parsed_url.query):
             mobilepay_values[key] = value
 
         return {**res, **mobilepay_values}
