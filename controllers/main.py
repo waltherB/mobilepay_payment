@@ -379,9 +379,5 @@ class MobilePayController(http.Controller):
                         f"MobilePay Return: Failed to poll status for {reference}: {e}"
                     )
 
-                # Redirect to payment status with access_token
-                if tx_sudo.access_token:
-                    return request.redirect(f"/payment/status/{tx_sudo.access_token}")
-
-        # Fallback redirect to generic payment status
+        # Redirect to generic payment status
         return request.redirect("/payment/status")
