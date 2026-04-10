@@ -567,7 +567,7 @@ class PaymentTransaction(models.Model):
         parsed_url = url_parse(redirect_url)
 
         mobilepay_values = {
-            "api_url": parsed_url.base_url or redirect_url,
+            "api_url": redirect_url.split("?")[0],
         }
         
         # Add all query parameters (like token) to rendering values
