@@ -59,14 +59,10 @@
         </record>
 
         <!-- MobilePay Transactions Menu Item -->
-        <!-- Note: In Odoo 17 CE, account.menu_finance may not exist.
-             If menu doesn't appear, change parent to a menu that exists in your CE instance,
-             such as the main Accounting menu or create a custom parent menu. -->
         <menuitem id="menu_mobilepay_transactions"
                   name="MobilePay Transactions"
                   parent="account.menu_finance"
                   action="action_mobilepay_transactions"
-                  sequence="50"
-                  groups="account.group_account_user"/>
+                  sequence="50"/>
     </data>
 </odoo>
