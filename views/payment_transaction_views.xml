@@ -63,6 +63,7 @@
                   name="MobilePay Transactions"
                   parent="account.menu_finance"
                   action="action_mobilepay_transactions"
-                  sequence="55"/>
+                  sequence="55"
+                  groups="account.group_account_readonly,account.group_account_invoice"/>
     </data>
 </odoo>
