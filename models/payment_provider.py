@@ -120,6 +120,29 @@ class PaymentProvider(models.Model):
                 values["mobilepay_webhook_secret_encrypted"] = False
             del values["mobilepay_webhook_secret"]
 
+    def write(self, values):
+        # Handle capture settings conflict resolution
+        if self.code == "mobilepay" and 'capture_manually' in values and 'capture_on_delivery' in values:
+            if values['capture_manually'] and values['capture_on_delivery']:
+                # Auto-resolve conflict by disabling capture_on_delivery
+                values['capture_on_delivery'] = False
+                _logger.warning(
+                    f"MobilePay provider '{self.name}': Both capture_manually and "
+                    f"capture_on_delivery were set. Automatically disabled capture_on_delivery."
+                )
+        elif self.code == "mobilepay" and (
+            ('capture_manually' in values and values['capture_manually'] and self.capture_on_delivery) or
+            ('capture_on_delivery' in values and values['capture_on_delivery'] and self.capture_manually)
+        ):
+            # Auto-resolve conflict by disabling the one being enabled if the other is already True
+            if 'capture_manually' in values and values['capture_manually']:
+                values['capture_on_delivery'] = False
+            elif 'capture_on_delivery' in values and values['capture_on_delivery']:
+                values['capture_manually'] = False
+            _logger.warning(
+                f"MobilePay provider '{self.name}': Conflicting capture settings resolved automatically."
+            )
+
         return super().write(values)
 
     show_mobilepay_fields = fields.Boolean(
@@ -501,21 +524,6 @@ class PaymentProvider(models.Model):
                             )
                             % ", ".join(missing_credentials)
                         )
-
-    @api.constrains("capture_manually", "capture_on_delivery")
-    def _check_capture_settings(self):
-        """Validate that manual capture and capture on delivery are mutually exclusive."""
-        for provider in self:
-            if provider.code == "mobilepay":
-                if provider.capture_manually and provider.capture_on_delivery:
-                    # Auto-fix conflicting settings by disabling capture_on_delivery
-                    # This handles upgrades where both were previously enabled
-                    provider.capture_on_delivery = False
-                    _logger.warning(
-                        f"MobilePay provider '{provider.name}': Both capture_manually and "
-                        f"capture_on_delivery were enabled. Automatically disabled capture_on_delivery "
-                        f"to maintain manual capture behavior."
-                    )
 
     @api.model
     def _get_compatible_providers(self, *args, currency_id=None, **kwargs):
