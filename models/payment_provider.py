@@ -502,6 +502,19 @@ class PaymentProvider(models.Model):
                             % ", ".join(missing_credentials)
                         )
 
+    @api.constrains("capture_manually", "capture_on_delivery")
+    def _check_capture_settings(self):
+        """Validate that manual capture and capture on delivery are mutually exclusive."""
+        for provider in self:
+            if provider.code == "mobilepay":
+                if provider.capture_manually and provider.capture_on_delivery:
+                    raise ValidationError(
+                        _(
+                            "Manual Capture and Capture on Delivery cannot both be enabled simultaneously. "
+                            "Please choose one capture method."
+                        )
+                    )
+
     @api.model
     def _get_compatible_providers(self, *args, currency_id=None, **kwargs):
         """Override to ensure MobilePay only works with DKK currency."""

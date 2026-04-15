@@ -88,3 +88,23 @@ You must have a **MobilePay Merchant Account**. You will need the following cred
 *   **Missing "MobilePay" option**: Ensure the currency is set to **DKK**. MobilePay V3 only supports DKK for this integration.
 *   **Webhook Error**: Ensure your `web.base.url` parameter is set to an **HTTPS** URL.
 *   **Connection Error**: Verify your Client Secret and Subscription Key are correct for the selected environment (Test vs Production).
+
+## Odoo Community Edition (CE) Notes
+
+This module is designed to work with Odoo 17 CE. Note that CE has a simplified accounting module compared to Enterprise:
+
+### Accessing MobilePay Transactions in CE
+
+*   **Menu Location**: `Accounting > MobilePay Transactions` (if the menu appears)
+*   **Alternative Access**: If the menu doesn't appear in CE, you can still access transactions through:
+    *   Sales orders: Navigate to the order → Transactions tab
+    *   Invoices: Navigate to the invoice → Transactions tab  
+    *   Direct URL: `/web#action=action_mobilepay_transactions` (if action exists)
+*   **Menu Configuration**: If you want the menu to appear, you may need to adjust the parent menu in `views/payment_transaction_views.xml` to match your CE menu structure.
+
+### CE Compatibility
+
+*   All payment processing features work in CE
+*   Manual capture functionality is available through transaction forms
+*   Webhook processing works normally
+*   Only the menu structure may differ from Enterprise

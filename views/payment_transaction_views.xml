@@ -43,5 +43,30 @@
                 </xpath>
             </field>
         </record>
+
+        <!-- MobilePay Transactions Menu Action -->
+        <record id="action_mobilepay_transactions" model="ir.actions.act_window">
+            <field name="name">MobilePay Transactions</field>
+            <field name="res_model">payment.transaction</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('provider_id.code', '=', 'mobilepay')]</field>
+            <field name="context">{
+                'default_provider_id': False,
+                'search_default_filter_authorized': True,
+                'search_default_filter_pending': True
+            }</field>
+            <field name="help">View and manage all MobilePay payment transactions</field>
+        </record>
+
+        <!-- MobilePay Transactions Menu Item -->
+        <!-- Note: In Odoo 17 CE, account.menu_finance may not exist.
+             If menu doesn't appear, change parent to a menu that exists in your CE instance,
+             such as the main Accounting menu or create a custom parent menu. -->
+        <menuitem id="menu_mobilepay_transactions"
+                  name="MobilePay Transactions"
+                  parent="account.menu_finance"
+                  action="action_mobilepay_transactions"
+                  sequence="50"
+                  groups="account.group_account_user"/>
     </data>
 </odoo>

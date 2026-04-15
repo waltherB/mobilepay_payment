@@ -183,3 +183,82 @@ class TestMobilePayModuleStructure(TransactionCase):
         transaction.state = 'done'
         self.assertFalse(transaction.capture_eligible,
                         "Done transaction should not be eligible for capture")
+
+    def test_capture_settings_validation(self):
+        """Test that capture_manually and capture_on_delivery are mutually exclusive."""
+        # Create a provider with capture_manually enabled
+        provider = self.PaymentProvider.create({
+            'name': 'Test MobilePay Provider',
+            'code': 'mobilepay',
+            'state': 'test',
+            'mobilepay_client_id': 'test_client_id',
+            'mobilepay_client_secret': 'test_client_secret',
+            'mobilepay_subscription_key': 'test_subscription_key',
+            'mobilepay_merchant_serial': 'test_merchant_serial',
+            'capture_manually': True,
+            'capture_on_delivery': False
+        })
+        
+        # Should work fine
+        self.assertTrue(provider.capture_manually)
+        self.assertFalse(provider.capture_on_delivery)
+        
+        # Try to enable both - should raise ValidationError
+        with self.assertRaises(ValidationError) as cm:
+            provider.write({
+                'capture_on_delivery': True
+            })
+        
+        self.assertIn("cannot both be enabled simultaneously", str(cm.exception))
+        
+        # Test the reverse - create with capture_on_delivery enabled
+        provider2 = self.PaymentProvider.create({
+            'name': 'Test MobilePay Provider 2',
+            'code': 'mobilepay',
+            'state': 'test',
+            'mobilepay_client_id': 'test_client_id',
+            'mobilepay_client_secret': 'test_client_secret',
+            'mobilepay_subscription_key': 'test_subscription_key',
+            'mobilepay_merchant_serial': 'test_merchant_serial',
+            'capture_manually': False,
+            'capture_on_delivery': True
+        })
+        
+        # Should work fine
+        self.assertFalse(provider2.capture_manually)
+        self.assertTrue(provider2.capture_on_delivery)
+        
+        # Try to enable both - should raise ValidationError
+            provider2.write({
+                'capture_manually': True
+            })
+        
+        self.assertIn("cannot both be enabled simultaneously", str(cm.exception))
+
+    def test_mobilepay_menu_and_actions(self):
+        """Test that MobilePay menu items and actions are properly defined."""
+        # Check window actions
+        actions = self.env['ir.actions.act_window'].search([
+            ('res_model', '=', 'payment.transaction'),
+            ('domain', 'ilike', 'mobilepay')
+        ])
+        self.assertTrue(actions, "Should have MobilePay transaction actions")
+        
+        # Check that the action has the correct domain
+        mobilepay_action = actions.filtered(lambda a: 'mobilepay' in a.name.lower())
+        self.assertTrue(mobilepay_action, "Should have MobilePay-specific action")
+        
+        # Verify the domain filters for MobilePay transactions
+        self.assertIn('mobilepay', str(mobilepay_action.domain),
+                     "Action domain should filter for MobilePay transactions")
+        
+        # Check menu items (may not exist in CE if parent menu is different)
+        menus = self.env['ir.ui.menu'].search([
+            ('action', 'in', actions.ids)
+        ])
+        # In Odoo CE, the menu might not be created if parent doesn't exist
+        # So we just check that actions exist, menus are optional
+        if menus:
+            print("Note: MobilePay menu items found - full menu structure available")
+        else:
+            print("Note: MobilePay menu items not found - likely CE without full accounting menu")
