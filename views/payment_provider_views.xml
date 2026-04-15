@@ -7,6 +7,9 @@
             <field name="model">payment.provider</field>
             <field name="inherit_id" ref="payment.payment_provider_form"/>
             <field name="arch" type="xml">
+                <xpath expr="//field[@name='capture_manually']" position="replace">
+                    <!-- remove duplicate base field; keep custom capture settings in Configuration -->
+                </xpath>
                 <xpath expr="//group[@name='provider_credentials']" position="after">
                     <field name="show_mobilepay_fields" invisible="1"/>
                     <group name="mobilepay_credentials" 
@@ -70,11 +73,14 @@
                             <field name="website_id" groups="website.group_multi_website"/>
                         </group>
                         <group string="Payment Flow Settings" name="payment_flow">
-                            <field name="capture_manually"/>
-                            <field name="auto_capture_delay" 
-                                   invisible="capture_manually"/>
+                            <field name="capture_manually"
+                                   help="Authorize payments without immediate capture. When enabled, capture can be performed manually or via delivery-based capture."/>
+                            <field name="auto_capture_delay"
+                                   invisible="capture_manually"
+                                   help="Delay in hours before automatic capture when manual capture is disabled."/>
                             <field name="capture_on_delivery"
-                                   invisible="not capture_manually"/>
+                                   invisible="not capture_manually"
+                                   help="When manual capture mode is enabled, capture the payment automatically when the related delivery is validated."/>
                         </group>
                     </group>
                 </xpath>
