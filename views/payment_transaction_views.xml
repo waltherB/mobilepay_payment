@@ -63,6 +63,6 @@
                   name="MobilePay Transactions"
                   parent="account.menu_finance"
                   action="action_mobilepay_transactions"
-                  sequence="50"/>
+                  sequence="5"/>
     </data>
 </odoo>
