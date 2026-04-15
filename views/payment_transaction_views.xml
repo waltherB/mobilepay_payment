@@ -61,8 +61,8 @@
         <!-- MobilePay Transactions Menu Item -->
         <menuitem id="menu_mobilepay_transactions"
                   name="MobilePay Transactions"
-                  parent="account.menu_finance_reports"
+                  parent="account.menu_finance"
                   action="action_mobilepay_transactions"
-                  sequence="5"/>
+                  sequence="55"/>
     </data>
 </odoo>
