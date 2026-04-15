@@ -108,3 +108,4 @@ This module is designed to work with Odoo 17 CE. Note that CE has a simplified a
 *   Manual capture functionality is available through transaction forms
 *   Webhook processing works normally
 *   Only the menu structure may differ from Enterprise
+*   **Upgrade Note**: If you had both "Manual Capture" and "Capture on Delivery" enabled, the system will automatically disable "Capture on Delivery" during upgrade to maintain compatibility

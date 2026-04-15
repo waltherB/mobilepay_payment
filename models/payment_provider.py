@@ -508,11 +508,13 @@ class PaymentProvider(models.Model):
         for provider in self:
             if provider.code == "mobilepay":
                 if provider.capture_manually and provider.capture_on_delivery:
-                    raise ValidationError(
-                        _(
-                            "Manual Capture and Capture on Delivery cannot both be enabled simultaneously. "
-                            "Please choose one capture method."
-                        )
+                    # Auto-fix conflicting settings by disabling capture_on_delivery
+                    # This handles upgrades where both were previously enabled
+                    provider.capture_on_delivery = False
+                    _logger.warning(
+                        f"MobilePay provider '{provider.name}': Both capture_manually and "
+                        f"capture_on_delivery were enabled. Automatically disabled capture_on_delivery "
+                        f"to maintain manual capture behavior."
                     )
 
     @api.model

@@ -203,13 +203,14 @@ class TestMobilePayModuleStructure(TransactionCase):
         self.assertTrue(provider.capture_manually)
         self.assertFalse(provider.capture_on_delivery)
         
-        # Try to enable both - should raise ValidationError
-        with self.assertRaises(ValidationError) as cm:
-            provider.write({
-                'capture_on_delivery': True
-            })
+        # Try to enable both - should auto-fix by disabling capture_on_delivery
+        provider.write({
+            'capture_on_delivery': True
+        })
         
-        self.assertIn("cannot both be enabled simultaneously", str(cm.exception))
+        # Should have auto-corrected: capture_manually stays True, capture_on_delivery becomes False
+        self.assertTrue(provider.capture_manually)
+        self.assertFalse(provider.capture_on_delivery)
         
         # Test the reverse - create with capture_on_delivery enabled
         provider2 = self.PaymentProvider.create({
@@ -228,12 +229,14 @@ class TestMobilePayModuleStructure(TransactionCase):
         self.assertFalse(provider2.capture_manually)
         self.assertTrue(provider2.capture_on_delivery)
         
-        # Try to enable both - should raise ValidationError
-            provider2.write({
-                'capture_manually': True
-            })
+        # Try to enable both - should auto-fix by disabling capture_on_delivery
+        provider2.write({
+            'capture_manually': True
+        })
         
-        self.assertIn("cannot both be enabled simultaneously", str(cm.exception))
+        # Should have auto-corrected: capture_on_delivery stays True, capture_manually becomes False
+        self.assertFalse(provider2.capture_manually)
+        self.assertTrue(provider2.capture_on_delivery)
 
     def test_mobilepay_menu_and_actions(self):
         """Test that MobilePay menu items and actions are properly defined."""
