@@ -23,13 +23,25 @@ class PaymentProvider(models.Model):
     )
     auto_capture_delay = fields.Integer(
         string="Auto Capture Delay (hours)",
-        help="Delay in hours before automatic capture (when manual capture is disabled)",
+        help="Delay in hours before automatic capture (when manual capture is disabled).",
         default=24,
     )
     capture_on_delivery = fields.Boolean(
         string="Capture on Delivery",
         help="Automatically capture authorized payments when the related delivery order is validated.",
         default=False,
+    )
+    capture_mode = fields.Selection(
+        [
+            ("manual", "Manual Capture"),
+            ("delivery", "Capture on Delivery"),
+            ("auto_delay", "Automatic Capture after Delay"),
+        ],
+        string="Capture Flow",
+        compute="_compute_capture_mode",
+        inverse="_inverse_capture_mode",
+        store=False,
+        help="Select how MobilePay should capture authorized payments.",
     )
     
     mobilepay_logic_version = fields.Char(
@@ -121,28 +133,6 @@ class PaymentProvider(models.Model):
             del values["mobilepay_webhook_secret"]
 
     def write(self, values):
-        # Handle capture settings conflict resolution
-        if self.code == "mobilepay" and 'capture_manually' in values and 'capture_on_delivery' in values:
-            if values['capture_manually'] and values['capture_on_delivery']:
-                # Auto-resolve conflict by disabling capture_on_delivery
-                values['capture_on_delivery'] = False
-                _logger.warning(
-                    f"MobilePay provider '{self.name}': Both capture_manually and "
-                    f"capture_on_delivery were set. Automatically disabled capture_on_delivery."
-                )
-        elif self.code == "mobilepay" and (
-            ('capture_manually' in values and values['capture_manually'] and self.capture_on_delivery) or
-            ('capture_on_delivery' in values and values['capture_on_delivery'] and self.capture_manually)
-        ):
-            # Auto-resolve conflict by disabling the one being enabled if the other is already True
-            if 'capture_manually' in values and values['capture_manually']:
-                values['capture_on_delivery'] = False
-            elif 'capture_on_delivery' in values and values['capture_on_delivery']:
-                values['capture_manually'] = False
-            _logger.warning(
-                f"MobilePay provider '{self.name}': Conflicting capture settings resolved automatically."
-            )
-
         return super().write(values)
 
     show_mobilepay_fields = fields.Boolean(
@@ -154,6 +144,28 @@ class PaymentProvider(models.Model):
     def _compute_show_mobilepay_fields(self):
         for provider in self:
             provider.show_mobilepay_fields = provider.code == "mobilepay"
+
+    @api.depends("capture_manually", "capture_on_delivery")
+    def _compute_capture_mode(self):
+        for provider in self:
+            if provider.capture_manually:
+                provider.capture_mode = (
+                    "delivery" if provider.capture_on_delivery else "manual"
+                )
+            else:
+                provider.capture_mode = "auto_delay"
+
+    def _inverse_capture_mode(self):
+        for provider in self:
+            if provider.capture_mode == "manual":
+                provider.capture_manually = True
+                provider.capture_on_delivery = False
+            elif provider.capture_mode == "delivery":
+                provider.capture_manually = True
+                provider.capture_on_delivery = True
+            else:
+                provider.capture_manually = False
+                provider.capture_on_delivery = False
 
     def _compute_feature_support_fields(self):
         """Override of `payment` to enable additional features."""

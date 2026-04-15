@@ -73,14 +73,11 @@
                             <field name="website_id" groups="website.group_multi_website"/>
                         </group>
                         <group string="Payment Flow Settings" name="payment_flow">
-                            <field name="capture_manually"
-                                   help="Authorize payments without immediate capture. When enabled, capture can be performed manually or via delivery-based capture."/>
+                            <field name="capture_mode"
+                                   help="Select how MobilePay should capture authorized payments: manually, automatically on delivery, or automatically after a delay."/>
                             <field name="auto_capture_delay"
-                                   invisible="capture_manually"
-                                   help="Delay in hours before automatic capture when manual capture is disabled."/>
-                            <field name="capture_on_delivery"
-                                   invisible="not capture_manually"
-                                   help="When manual capture mode is enabled, capture the payment automatically when the related delivery is validated."/>
+                                   invisible="capture_mode != 'auto_delay'"
+                                   help="Enter the number of hours to wait before automatically capturing the payment when Automatic Capture after Delay is selected."/>
                         </group>
                     </group>
                 </xpath>

@@ -69,3 +69,33 @@ msgstr "Refundering fejlede: %s"
 #: code:addons/mobilepay_payment/models/payment_transaction.py:0
 msgid "Cancellation failed: %s"
 msgstr "Annullering fejlede: %s"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_description:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Capture Flow"
+msgstr "Indfangningsflow"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_selection:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Manual Capture"
+msgstr "Manuel indfangning"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_selection:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Capture on Delivery"
+msgstr "Indfang ved levering"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_selection:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Automatic Capture after Delay"
+msgstr "Automatisk indfangning efter forsinkelse"
+
+#. module: mobilepay_payment
+#: model:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Choose whether payments are captured manually, automatically after a delay, or automatically on delivery."
+msgstr "Vælg, om betalinger skal indfanges manuelt, automatisk efter en forsinkelse eller automatisk ved levering."
+
+#. module: mobilepay_payment
+#: model:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Delay in hours before automatic capture when the selected capture flow is Automatic Capture after Delay."
+msgstr "Forsinkelse i timer før automatisk indfangning, når den valgte indfangningsflow er Automatisk indfangning efter forsinkelse."
