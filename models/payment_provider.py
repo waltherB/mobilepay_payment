@@ -2,6 +2,7 @@
 
 import logging
 import json
+from urllib.parse import urlparse, urlunparse
 from cryptography.fernet import Fernet
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
@@ -598,19 +599,25 @@ class PaymentProvider(models.Model):
             UserError: If webhook registration fails
         """
         # Get and sanitize base URL
-        base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
+        raw_base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
+        if not raw_base_url:
+            raise UserError(_("System base URL is not configured (web.base.url)."))
+
+        base_url = raw_base_url.strip()
         if not base_url:
             raise UserError(_("System base URL is not configured (web.base.url)."))
 
-        # Strip all whitespace and trailing slashes
-        base_url = base_url.strip().rstrip("/")
-
-        # MobilePay strictly requires HTTPS for webhooks in almost all cases
-        if not base_url.startswith("https://"):
-            _logger.warning(
-                f"MobilePay Webhook: Base URL '{base_url}' does not use HTTPS."
+        parsed_url = urlparse(base_url)
+        if parsed_url.scheme not in ("https", "http") or not parsed_url.netloc:
+            raise UserError(
+                _(
+                    "MobilePay webhook registration requires a valid web.base.url with HTTPS. "
+                    "Current value is invalid: %s"
+                )
+                % base_url
             )
-            # We still try if the user explicitly allowed it, but it will likely fail 400 at API level
+
+        if parsed_url.scheme != "https":
             allow_http = (
                 self.env["ir.config_parameter"]
                 .sudo()
@@ -619,12 +626,24 @@ class PaymentProvider(models.Model):
             )
             if not allow_http:
                 raise UserError(
-                    _("MobilePay requires an HTTPS webhook URL. Current base URL: %s")
+                    _(
+                        "MobilePay requires an HTTPS webhook URL. Current web.base.url: %s"
+                    )
                     % base_url
                 )
 
-        # Construct webhook URL
-        webhook_url = f"{base_url}/payment/mobilepay/webhook"
+        clean_path = parsed_url.path.rstrip("/")
+        clean_base_url = urlunparse(
+            (
+                parsed_url.scheme,
+                parsed_url.netloc,
+                clean_path,
+                "",
+                "",
+                "",
+            )
+        )
+        webhook_url = f"{clean_base_url}/payment/mobilepay/webhook"
         _logger.info(f"MobilePay: Registering webhook with URL: {webhook_url}")
 
         # Prepare webhook registration data
