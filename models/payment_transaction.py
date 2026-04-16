@@ -115,6 +115,34 @@ class PaymentTransaction(models.Model):
             return 0.0
         return float(amount_ore) / 100.0
 
+    def _parse_mobilepay_amount(self, amount_data):
+        """
+        Parse a MobilePay amount payload into DKK.
+
+        MobilePay may return a plain integer amount in øre, or a nested object
+        with currency/value fields. This helper tries to infer the unit used.
+        """
+        if not amount_data:
+            return 0.0
+
+        if isinstance(amount_data, dict):
+            amount_value = amount_data.get("value")
+        else:
+            amount_value = amount_data
+
+        try:
+            amount_value = float(amount_value)
+        except (TypeError, ValueError):
+            return 0.0
+
+        if self.amount and abs(amount_value - float(self.amount) * 100) < 0.01:
+            return amount_value / 100.0
+
+        if amount_value >= 1000:
+            return amount_value / 100.0
+
+        return amount_value
+
     def _generate_idempotency_key(self, api_reference=None):
         """
         Generate unique idempotency key for MobilePay API requests.
@@ -327,10 +355,13 @@ class PaymentTransaction(models.Model):
                 json.dumps(status_data),
             )
 
+            # Normalize status from either Vipps 'status' or 'state'
+            raw_status = status_data.get("status") or status_data.get("state")
+
             # Update status field and timestamp
             self.write(
                 {
-                    "mobilepay_status": status_data.get("status"),
+                    "mobilepay_status": raw_status,
                     "last_status_poll": fields.Datetime.now(),
                 }
             )
@@ -353,7 +384,7 @@ class PaymentTransaction(models.Model):
         Args:
             status_data (dict): Payment status data from API
         """
-        status = status_data.get("status")
+        status = status_data.get("status") or status_data.get("state")
         if not status:
             _logger.warning(
                 "MobilePay status poll returned no status for transaction %s: %s",
@@ -377,16 +408,20 @@ class PaymentTransaction(models.Model):
             )
 
         # Update captured/refunded amounts if present
-        details = status_data.get("paymentDetails", {})
+        details = status_data.get("paymentDetails", {}) or status_data.get("aggregate", {})
         if details:
             vals = {}
             if "capturedAmount" in details:
-                vals["captured_amount"] = self._convert_ore_to_dkk(
+                vals["captured_amount"] = self._parse_mobilepay_amount(
                     details["capturedAmount"]
                 )
             if "refundedAmount" in details:
-                vals["refunded_amount"] = self._convert_ore_to_dkk(
+                vals["refunded_amount"] = self._parse_mobilepay_amount(
                     details["refundedAmount"]
+                )
+            if "authorizedAmount" in details:
+                vals["authorized_amount"] = self._parse_mobilepay_amount(
+                    details["authorizedAmount"]
                 )
 
             if vals:
