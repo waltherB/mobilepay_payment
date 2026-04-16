@@ -83,7 +83,7 @@ class PaymentTransaction(models.Model):
             transaction.capture_eligible = (
                 transaction.provider_id.code == "mobilepay"
                 and transaction.state == "authorized"
-                and transaction.mobilepay_status == "RESERVED"
+                and transaction.mobilepay_status in ["RESERVED", "AUTHORIZED"]
                 and transaction.authorized_amount > 0
             )
 
@@ -352,7 +352,7 @@ class PaymentTransaction(models.Model):
             return
 
         # Map MobilePay status to Odoo state
-        if status == "RESERVED":
+        if status in ["RESERVED", "AUTHORIZED"]:
             self._set_authorized()
         elif status == "CAPTURED":
             self._set_done()
