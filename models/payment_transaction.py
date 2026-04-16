@@ -321,6 +321,12 @@ class PaymentTransaction(models.Model):
                 self.provider_id, self.mobilepay_payment_id
             )
 
+            _logger.info(
+                "MobilePay status poll result for %s: %s",
+                self.mobilepay_payment_id,
+                json.dumps(status_data),
+            )
+
             # Update status field and timestamp
             self.write(
                 {
@@ -349,6 +355,11 @@ class PaymentTransaction(models.Model):
         """
         status = status_data.get("status")
         if not status:
+            _logger.warning(
+                "MobilePay status poll returned no status for transaction %s: %s",
+                self.reference,
+                json.dumps(status_data),
+            )
             return
 
         # Map MobilePay status to Odoo state
@@ -358,6 +369,12 @@ class PaymentTransaction(models.Model):
             self._set_done()
         elif status in ["CANCELLED", "EXPIRED", "ABORTED", "TERMINATED"]:
             self._set_canceled()
+        else:
+            _logger.warning(
+                "MobilePay status '%s' is not mapped to an Odoo state for transaction %s",
+                status,
+                self.reference,
+            )
 
         # Update captured/refunded amounts if present
         details = status_data.get("paymentDetails", {})
