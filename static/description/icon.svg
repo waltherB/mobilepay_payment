@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="ModuleIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <style>
+      .icon-bg {
+        fill: #5a78ff;
+      }
+      .icon-symbol {
+        fill: #fff;
+        fill-rule: evenodd;
+      }
+    </style>
+  </defs>
+  <!-- Background -->
+  <rect class="icon-bg" x="0" y="0" width="128" height="128" rx="16" ry="16"/>
+  
+  <!-- MobilePay "M" Symbol - Simplified for Icon Use -->
+  <g transform="translate(32, 28)">
+    <!-- Left vertical stroke of M -->
+    <rect x="0" y="0" width="8" height="48" fill="#fff" rx="2"/>
+    
+    <!-- Peak of M -->
+    <polygon class="icon-symbol" points="16,0 24,24 8,24"/>
+    
+    <!-- Right vertical stroke of M -->
+    <rect x="32" y="0" width="8" height="48" fill="#fff" rx="2"/>
+    
+    <!-- Mobile phone indication -->
+    <rect x="8" y="56" width="32" height="20" rx="2" ry="2" fill="none" stroke="#fff" stroke-width="2"/>
+    <circle cx="24" cy="70" r="2" fill="#fff"/>
+  </g>
+</svg>
