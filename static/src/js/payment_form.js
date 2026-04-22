@@ -1,11 +1,11 @@
 /** @odoo-module **/
 
 import { _t } from "@web/core/l10n/translation";
-import { PaymentForm } from "@payment/js/payment_form";
+import paymentForm from "@payment/js/payment_form";
 
 console.log("MobilePay: payment_form.js extension active");
 
-PaymentForm.include({
+paymentForm.include({
 
     /**
      * Handle MobilePay-specific payment form processing
