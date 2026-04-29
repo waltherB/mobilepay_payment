@@ -59,3 +59,26 @@ Transform tasks into verifiable goals:
 - Keep controller logic minimal
 - Use logging for transaction tracking
 - Separate concerns between auth, payments, and webhooks
+
+## Odoo & OCA Coding Guidelines
+
+1. **Module Structure and Versioning**
+   - Use the singular form in module names.
+   - Version numbers should follow `Odoo_Version.x.y.z` (e.g., `17.0.1.0.0`).
+   - Standard directory structure: `controllers/`, `data/`, `models/`, `security/`, `views/`, etc.
+
+2. **XML Files**
+   - Indent using four spaces. Place `id` attribute before `model`.
+   - Naming `xml_id`: `<model_name>_<record_name>` for data.
+   - For views: `<model_name>_view_<view_type>` (e.g., `res_users_view_form`).
+   - For actions: `<model_name>_action`.
+
+3. **Python Guidelines**
+   - Adhere to PEP8 and PyFlakes.
+   - Order imports: Standard library, third-party, Odoo imports (`odoo`), Odoo modules, Local imports.
+   - Use UpperCamelCase for classes (e.g., `AccountInvoice`) and snake_case for variables.
+   - Avoid `_id` or `_ids` suffixes for variables that contain recordsets instead of actual IDs.
+
+4. **Database & SQL**
+   - **No SQL Injection**: Never use string concatenation or interpolation for SQL queries. Use `psycopg2` parameters.
+   - **Never commit the transaction**: The Odoo framework handles transactions; do not call `cr.commit()` manually.
