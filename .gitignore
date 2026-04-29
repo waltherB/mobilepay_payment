@@ -55,6 +55,6 @@ venv.bak/
 
 # AI Agent stuff
 .kiro/
-.cursor/
-.agents/
+#.cursor/
+#.agents/
 
