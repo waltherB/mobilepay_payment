@@ -546,6 +546,28 @@ class PaymentProvider(models.Model):
 
         return providers
 
+    def action_test_connection(self):
+        """Test connection to MobilePay API by fetching an access token."""
+        self.ensure_one()
+        self._check_mobilepay_credentials()
+        try:
+            # Fetching system headers implicitly fetches and validates the OAuth token
+            api_client = self.env["mobilepay.api.client"]
+            api_client._get_system_headers(self)
+            
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Connection Successful"),
+                    "message": _("Successfully connected to the MobilePay API! Your credentials are valid."),
+                    "type": "success",
+                    "sticky": False,
+                },
+            }
+        except Exception as e:
+            raise UserError(_("Connection failed: %s") % str(e))
+
     def action_register_webhook(self):
         """Register webhook with MobilePay API."""
         self._check_mobilepay_credentials()

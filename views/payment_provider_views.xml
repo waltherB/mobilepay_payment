@@ -18,17 +18,17 @@
                                font="bold" class="text-primary h5 font-weight-bold mb-3"/>
                         <group string="Test Environment Credentials" name="test_credentials"
                                invisible="state == 'enabled'">
-                            <field name="mobilepay_test_client_id"/>
-                            <field name="mobilepay_test_client_secret" password="True"/>
-                            <field name="mobilepay_test_subscription_key" password="True"/>
-                            <field name="mobilepay_test_merchant_serial"/>
+                            <field name="mobilepay_test_client_id" help="The Client ID found in the Vipps Portal under Developer -> API Keys."/>
+                            <field name="mobilepay_test_client_secret" password="True" help="The Client Secret found in the Vipps Portal."/>
+                            <field name="mobilepay_test_subscription_key" password="True" help="The Ocp-Apim-Subscription-Key for the API product."/>
+                            <field name="mobilepay_test_merchant_serial" help="The 6-digit MSN (Merchant Serial Number) for the test unit."/>
                         </group>
                         <group string="Production Environment Credentials" name="prod_credentials"
                                invisible="state != 'enabled'">
-                            <field name="mobilepay_prod_client_id"/>
-                            <field name="mobilepay_prod_client_secret" password="True"/>
-                            <field name="mobilepay_prod_subscription_key" password="True"/>
-                            <field name="mobilepay_prod_merchant_serial"/>
+                            <field name="mobilepay_prod_client_id" help="The Client ID found in the Vipps Portal under Developer -> API Keys."/>
+                            <field name="mobilepay_prod_client_secret" password="True" help="The Client Secret found in the Vipps Portal."/>
+                            <field name="mobilepay_prod_subscription_key" password="True" help="The Ocp-Apim-Subscription-Key for the API product."/>
+                            <field name="mobilepay_prod_merchant_serial" help="The 6-digit MSN (Merchant Serial Number) for the production unit."/>
                         </group>
                         <group string="Webhook Configuration" name="webhook_config">
                             <field name="mobilepay_webhook_id"/>
@@ -49,8 +49,14 @@
                         
                         <group string="Diagnostic / Recovery Tools" name="diagnostic_tools" class="oe_edit_only">
                             <p class="text-muted small" colspan="2">
-                                These tools help fix "Signature Verification Failed" errors by cleaning up duplicate webhooks.
+                                Use these tools to verify API connectivity and manage webhook registrations.
                             </p>
+                            <button name="action_test_connection" 
+                                    string="Test API Connection" 
+                                    type="object" 
+                                    class="btn-primary"
+                                    icon="fa-check-circle"
+                                    help="Attempts to fetch an authentication token from the MobilePay API to verify credentials."/>
                             <button name="action_list_webhooks" 
                                     string="List All Active Webhooks" 
                                     type="object" 
@@ -69,6 +75,11 @@
                                     help="Clears the Webhook ID and Secret from Odoo manually."/>
                         </group>
                         <group string="Configuration" name="mobilepay_config">
+                            <div colspan="2" class="mb-3">
+                                <a href="https://portal.vippsmobilepay.com/" target="_blank" class="btn btn-link px-0">
+                                    <i class="fa fa-external-link"/> Open Vipps MobilePay Portal
+                                </a>
+                            </div>
                             <field name="is_published"/>
                             <field name="website_id" groups="website.group_multi_website"/>
                         </group>

@@ -204,3 +204,24 @@ msgstr ""
 #. module: mobilepay_payment
 msgid "Payment capture failed: %s"
 msgstr ""
+
+
+#. module: mobilepay_payment
+msgid "Test API Connection"
+msgstr ""
+
+#. module: mobilepay_payment
+msgid "Connection Successful"
+msgstr ""
+
+#. module: mobilepay_payment
+msgid "Successfully connected to the MobilePay API! Your credentials are valid."
+msgstr ""
+
+#. module: mobilepay_payment
+msgid "Connection failed: %s"
+msgstr ""
+
+#. module: mobilepay_payment
+msgid "Open Vipps MobilePay Portal"
+msgstr ""

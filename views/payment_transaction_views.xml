@@ -39,7 +39,11 @@
                     <field name="mobilepay_payment_id" 
                            invisible="not show_mobilepay_fields"/>
                     <field name="mobilepay_status" 
-                           invisible="not show_mobilepay_fields"/>
+                           invisible="not show_mobilepay_fields"
+                           widget="badge" 
+                           decoration-success="mobilepay_status == 'CAPTURED'" 
+                           decoration-warning="mobilepay_status in ('RESERVED', 'AUTHORIZED')" 
+                           decoration-danger="mobilepay_status in ('CANCELLED', 'ABORTED', 'TERMINATED', 'EXPIRED')"/>
                 </xpath>
             </field>
         </record>
