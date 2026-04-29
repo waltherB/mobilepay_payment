@@ -65,3 +65,13 @@ For multi-step tasks, state a brief plan:
 ```
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+## Applied to This Project
+
+- Use clear names for payment states and transaction statuses
+- Keep API clients simple and focused
+- Document the MobilePay integration strategy
+- Write tests that validate payment flows
+- Keep controller logic minimal
+- Use logging for transaction tracking
+- Separate concerns between auth, payments, and webhooks
