@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="mobilepay_inline_form">
-        <div class="o_payment_mobilepay_inline_form">
+        <div class="o_payment_mobilepay_inline_form mt-2 mb-2">
             <!-- Branding Header -->
-            <div class="d-flex align-items-center mb-3 p-2 bg-light rounded border">
-                <img t-att-src="'/mobilepay_payment/static/img/mobilepay_logo.svg'" alt="MobilePay Logo" style="height: 28px; width: auto; margin-right: 10px;"/>
-                <span class="font-weight-bold text-dark">Pay with MobilePay</span>
+            <div class="d-flex align-items-center mb-3">
+                <img t-att-src="'/mobilepay_payment/static/img/mobilepay_logo.svg'" alt="MobilePay Logo" style="height: 24px; width: auto; margin-right: 10px;"/>
+                <span class="text-muted">Here, you can pay with MobilePay</span>
             </div>
             
             <label t-attf-for="mobilepay_phone_#{provider_id}" class="col-form-label">Phone Number</label>
