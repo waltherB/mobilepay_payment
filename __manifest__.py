@@ -27,7 +27,6 @@ Supports both Odoo Enterprise and Community editions.
         "sale_stock",
     ],
     "data": [
-        "security/ir.model.access.csv",
         "views/mobilepay_templates.xml",
         "data/payment_provider_data.xml",
         "data/system_parameters.xml",
