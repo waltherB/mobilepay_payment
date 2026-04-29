@@ -1,77 +1,54 @@
-# Karpathy Rules
+# Karpathy Guidelines
 
-These are coding principles inspired by Andrej Karpathy's approach to software engineering.
+These are coding principles inspired by Andrej Karpathy's approach to software engineering, designed to reduce common LLM coding mistakes.
 
-## Core Principles
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-1. **Clarity Over Cleverness**
-   - Write code for humans first, machines second
-   - Avoid clever tricks that make code harder to understand
-   - Prefer explicit over implicit
-   - Use clear variable and function names
+## Core Behavioral Guidelines
 
-2. **Simplicity and Minimalism**
-   - Keep it simple (KISS principle)
-   - Remove unnecessary complexity
-   - One thing per function
-   - Avoid premature optimization
-   - Delete code when possible
+### 1. Think Before Coding
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-3. **Readability**
-   - Code is read far more often than written
-   - Use clear naming: `user_count` not `u_c`
-   - Keep functions short and focused
-   - Add comments only when "why", not "what"
-   - Consistent formatting and style
+### 2. Simplicity First
+**Minimum code that solves the problem. Nothing speculative.**
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-4. **Testing and Validation**
-   - Test driven development (TDD) when possible
-   - Write tests that document behavior
-   - Verify assumptions explicitly
-   - Test edge cases
-   - Make tests part of the design process
+### 3. Surgical Changes
+**Touch only what you must. Clean up only your own mess.**
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
 
-5. **Modularity and Separation of Concerns**
-   - Single Responsibility Principle (SRP)
-   - Loose coupling, high cohesion
-   - Clear interfaces between modules
-   - Avoid deep nesting
-   - Keep related code together
+### 4. Goal-Driven Execution
+**Define success criteria. Loop until verified.**
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
 
-6. **Documentation**
-   - README should be first stop for understanding
-   - Document "why" decisions, not "what" code does
-   - Keep comments updated with code
-   - Use docstrings for public APIs
-   - Track decisions and trade-offs
+## Core Engineering Principles
 
-7. **Debugging and Validation**
-   - Print statements and debuggers are your friends
-   - Add instrumentation for visibility
-   - Log important state transitions
-   - Make debugging easy for yourself and others
-   - Verify behavior through multiple channels
-
-8. **Code Review and Iteration**
-   - Write for review and feedback
-   - Embrace refactoring
-   - Make incremental improvements
-   - Learn from code reviews
-   - Iterate on clarity and simplicity
-
-9. **No Premature Optimization**
-   - Make it work first
-   - Make it clear second
-   - Optimize last (if needed)
-   - Measure before optimizing
-   - Keep optimization localized
-
-10. **Consistency**
-    - Consistent naming conventions
-    - Consistent code style
-    - Consistent patterns and idioms
-    - Consistent error handling
-    - Make it easy to follow the codebase
+1. **Clarity Over Cleverness**: Write code for humans first, machines second.
+2. **Readability**: Code is read far more often than written. Use clear naming and keep functions focused.
+3. **Testing and Validation**: Test driven development (TDD) when possible. Verify assumptions explicitly.
+4. **Modularity and Separation of Concerns**: Loose coupling, high cohesion. Clear interfaces between modules.
+5. **Documentation**: Document "why" decisions, not "what" code does. Keep comments updated with code.
+6. **Debugging and Validation**: Add instrumentation for visibility. Log important state transitions.
+7. **Code Review and Iteration**: Embrace refactoring and make incremental improvements.
+8. **No Premature Optimization**: Make it work first, make it clear second, optimize last (if needed).
+9. **Consistency**: Consistent naming conventions, code style, and error handling.
 
 ## Applied to This Project
 
