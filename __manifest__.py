@@ -7,11 +7,12 @@
 MobilePay Payment Provider for Odoo 17
 
 This module integrates Vipps MobilePay ePayment API v3 with Odoo, providing:
-- Authorize & capture payment flows
-- Immediate payments and refunds
-- Real-time webhook processing
+- Flexible Capture flows: Manual, Capture on Delivery (Stock integration), or Automatic after delay
+- Immediate payments and refunds (Full/Partial)
+- Real-time webhook processing with HMAC security
 - Phone number pre-fill for enhanced UX
-- Secure credential management
+- Secure credential management with Fernet encryption
+- Diagnostic tools: API connection test and Webhook management
 - Danish market support (DKK currency)
 
 Supports both Odoo Enterprise and Community editions.

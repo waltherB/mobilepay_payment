@@ -17,11 +17,7 @@ class PaymentProvider(models.Model):
         selection_add=[("mobilepay", "MobilePay")], ondelete={"mobilepay": "cascade"}
     )
 
-    capture_manually = fields.Boolean(
-        string="Manual Capture",
-        default=False,
-        help="Capture payment manually after authorization.",
-    )
+
     auto_capture_delay = fields.Integer(
         string="Auto Capture Delay (hours)",
         help="Delay in hours before automatic capture (when manual capture is disabled).",
@@ -172,8 +168,8 @@ class PaymentProvider(models.Model):
         super()._compute_feature_support_fields()
         self.filtered(lambda p: p.code == "mobilepay").update(
             {
-                "support_manual_capture": "partial",
-                "support_refund": "partial",
+                "support_manual_capture": True,
+                "support_refund": True,
                 "support_tokenization": False,
             }
         )

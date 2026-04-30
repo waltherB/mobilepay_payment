@@ -445,8 +445,8 @@ class PaymentTransaction(models.Model):
         amount_ore = self._convert_dkk_to_ore(self.amount)
 
         capture_data = {
-            "amount": {
-                "currency": "DKK",
+            "modificationAmount": {
+                "currency": self.currency_id.name or "DKK",
                 "value": amount_ore,
             },
         }
@@ -530,8 +530,8 @@ class PaymentTransaction(models.Model):
         amount_ore = self._convert_dkk_to_ore(refund_amount)
 
         refund_data = {
-            "amount": {
-                "currency": "DKK",
+            "modificationAmount": {
+                "currency": self.currency_id.name or "DKK",
                 "value": amount_ore,
             },
         }

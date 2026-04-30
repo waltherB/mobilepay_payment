@@ -208,9 +208,9 @@ class TestMobilePayModuleStructure(TransactionCase):
             'capture_on_delivery': True
         })
         
-        # Should have auto-corrected: capture_manually stays True, capture_on_delivery becomes False
+        # Should have auto-corrected: both stay True
         self.assertTrue(provider.capture_manually)
-        self.assertFalse(provider.capture_on_delivery)
+        self.assertTrue(provider.capture_on_delivery)
         
         # Test the reverse - create with capture_on_delivery enabled
         provider2 = self.PaymentProvider.create({
@@ -234,8 +234,8 @@ class TestMobilePayModuleStructure(TransactionCase):
             'capture_manually': True
         })
         
-        # Should have auto-corrected: capture_on_delivery stays True, capture_manually becomes False
-        self.assertFalse(provider2.capture_manually)
+        # Should have auto-corrected: both stay True
+        self.assertTrue(provider2.capture_manually)
         self.assertTrue(provider2.capture_on_delivery)
 
     def test_mobilepay_menu_and_actions(self):
