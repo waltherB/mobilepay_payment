@@ -1,0 +1,237 @@
+# Norwegian translation for mobilepay_payment.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mobilepay_payment 17.0.1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-05 09:00+0000\n"
+"PO-Revision-Date: 2026-04-30 09:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: no\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.inline_form
+msgid "Phone Number"
+msgstr "Telefonnummer"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.inline_form
+msgid "Please enter a valid Danish phone number."
+msgstr "Vennligst skriv inn et gyldig dansk telefonnummer."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.inline_form
+msgid "Enter your MobilePay phone number."
+msgstr "Skriv inn ditt MobilePay-telefonnummer."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.inline_form
+msgid "Pay with MobilePay"
+msgstr "Betal med MobilePay"
+
+#. module: mobilepay_payment
+#. odoo-javascript
+#: code:addons/mobilepay_payment/static/src/js/payment_form.js:0
+msgid "Invalid phone number"
+msgstr "Ugyldig telefonnummer"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__code
+msgid "Code"
+msgstr "Kode"
+
+#. module: mobilepay_payment
+#: model:payment.provider,name:mobilepay_payment.payment_provider_mobilepay
+msgid "MobilePay"
+msgstr "MobilePay"
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Payment initiation failed: %s"
+msgstr "Betalingsinitiering mislyktes: %s"
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Only confirmed transactions can be refunded."
+msgstr "Kun bekreftede transaksjoner kan refunderes."
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Refund failed: %s"
+msgstr "Refusjon mislyktes: %s"
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Cancellation failed: %s"
+msgstr "Kansellering mislyktes: %s"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_description:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Capture Flow"
+msgstr "Trekkflyt"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_selection:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Manual Capture"
+msgstr "Manuelt trekk"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_selection:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Capture on Delivery"
+msgstr "Trekk ved levering"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_selection:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Automatic Capture after Delay"
+msgstr "Automatisk trekk etter forsinkelse"
+
+#. module: mobilepay_payment
+#: model:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Choose whether payments are captured manually, automatically after a delay, or automatically on delivery."
+msgstr "Velg om betalinger skal trekkes manuelt, automatisk etter en forsinkelse, eller automatisk ved levering."
+
+#. module: mobilepay_payment
+#: model:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Delay in hours before automatic capture when the selected capture flow is Automatic Capture after Delay."
+msgstr "Forsinkelse i timer før automatisk trekk når valgt trekkflyt er Automatisk trekk etter forsinkelse."
+
+
+#. module: mobilepay_payment
+msgid "Here, you can pay with MobilePay"
+msgstr "Her kan du betale med MobilePay"
+
+#. module: mobilepay_payment
+msgid "Please enter a valid Danish phone number (8 digits, optionally with +45)."
+msgstr "Vennligst skriv inn et gyldig dansk telefonnummer (8 sifre, eventuelt med +45)."
+
+#. module: mobilepay_payment
+msgid "Webhook Registration Successful"
+msgstr "Webhook-registrering vellykket"
+
+#. module: mobilepay_payment
+msgid "Webhook Registration Failed"
+msgstr "Webhook-registrering mislyktes"
+
+#. module: mobilepay_payment
+msgid "System base URL is not configured (web.base.url)."
+msgstr "Systemets base-URL er ikke konfigurert (web.base.url)."
+
+#. module: mobilepay_payment
+msgid "Failed to register webhook: %s"
+msgstr "Kunne ikke registrere webhook: %s"
+
+#. module: mobilepay_payment
+msgid "Invalid webhook registration response from MobilePay API"
+msgstr "Ugyldig svar på webhook-registrering fra MobilePay API"
+
+#. module: mobilepay_payment
+msgid "No webhook ID available for connectivity test"
+msgstr "Ingen webhook-ID tilgjengelig for tilkoblingstest"
+
+#. module: mobilepay_payment
+msgid "No Webhook Registered"
+msgstr "Ingen webhook registrert"
+
+#. module: mobilepay_payment
+msgid "Webhook Unregistered"
+msgstr "Webhook avregistrert"
+
+#. module: mobilepay_payment
+msgid "Webhook Unregistration Failed"
+msgstr "Avregistrering av webhook mislyktes"
+
+#. module: mobilepay_payment
+msgid "Failed to unregister webhook: %s"
+msgstr "Kunne ikke avregistrere webhook: %s"
+
+#. module: mobilepay_payment
+msgid "Error unregistering webhook: %s"
+msgstr "Feil ved avregistrering av webhook: %s"
+
+#. module: mobilepay_payment
+msgid "Found %s registered webhooks. Check Odoo logs for details."
+msgstr "Fant %s registrerte webhooks. Sjekk Odoo-logger for detaljer."
+
+#. module: mobilepay_payment
+msgid "Webhook List"
+msgstr "Webhook-liste"
+
+#. module: mobilepay_payment
+msgid "Failed to fetch webhooks: %s"
+msgstr "Kunne ikke hente webhooks: %s"
+
+#. module: mobilepay_payment
+msgid "Webhooks Cleaned"
+msgstr "Webhooks ryddet opp"
+
+#. module: mobilepay_payment
+msgid "Successfully unregistered %s webhooks."
+msgstr "Vellykket avregistrering av %s webhooks."
+
+#. module: mobilepay_payment
+msgid "Failed to clean webhooks: %s"
+msgstr "Kunne ikke rydde opp i webhooks: %s"
+
+#. module: mobilepay_payment
+msgid "No webhook ID stored to unregister."
+msgstr "Ingen lagret webhook-ID å avregistrere."
+
+#. module: mobilepay_payment
+msgid "Webhook Forced Out"
+msgstr "Webhook tvunget ut"
+
+#. module: mobilepay_payment
+msgid "Attempted to unregister stored ID and cleared local state."
+msgstr "Forsøkte å avregistrere lagret ID og slettet lokal tilstand."
+
+#. module: mobilepay_payment
+msgid "Local State Cleared"
+msgstr "Lokal tilstand slettet"
+
+#. module: mobilepay_payment
+msgid "API unregistration failed, but Odoo credentials were cleared."
+msgstr "API-avregistrering mislyktes, men Odoo-legitimasjon ble slettet."
+
+#. module: mobilepay_payment
+msgid "Network error while connecting to MobilePay API: %s"
+msgstr "Nettverksfeil ved tilkobling til MobilePay API: %s"
+
+#. module: mobilepay_payment
+msgid "Payment capture failed: %s"
+msgstr "Betalingstrekk mislyktes: %s"
+
+
+#. module: mobilepay_payment
+msgid "Test API Connection"
+msgstr "Test API-tilkobling"
+
+#. module: mobilepay_payment
+msgid "Connection Successful"
+msgstr "Tilkobling vellykket"
+
+#. module: mobilepay_payment
+msgid "Successfully connected to the MobilePay API! Your credentials are valid."
+msgstr "Vellykket tilkobling til MobilePay API! Dine legitimasjonsopplysninger er gyldige."
+
+#. module: mobilepay_payment
+msgid "Connection failed: %s"
+msgstr "Tilkobling mislyktes: %s"
+
+#. module: mobilepay_payment
+msgid "Open Vipps MobilePay Portal"
+msgstr "Åpne Vipps MobilePay-portalen"
+
+#. module: mobilepay_payment
+#: model:payment.provider,name:mobilepay_payment.payment_provider_mobilepay
+msgid "Vipps MobilePay"
+msgstr "Vipps MobilePay"
+
+#. module: mobilepay_payment
+#: model:payment.method,name:mobilepay_payment.payment_method_vipps
+msgid "Vipps"
+msgstr "Vipps"

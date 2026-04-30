@@ -1,0 +1,237 @@
+# Finnish translation for mobilepay_payment.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mobilepay_payment 17.0.1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-05 09:00+0000\n"
+"PO-Revision-Date: 2026-04-30 09:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.inline_form
+msgid "Phone Number"
+msgstr "Puhelinnumero"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.inline_form
+msgid "Please enter a valid Danish phone number."
+msgstr "Anna kelvollinen tanskalainen puhelinnumero."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.inline_form
+msgid "Enter your MobilePay phone number."
+msgstr "Anna MobilePay-puhelinnumerosi."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.inline_form
+msgid "Pay with MobilePay"
+msgstr "Maksa MobilePaylla"
+
+#. module: mobilepay_payment
+#. odoo-javascript
+#: code:addons/mobilepay_payment/static/src/js/payment_form.js:0
+msgid "Invalid phone number"
+msgstr "Virheellinen puhelinnumero"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__code
+msgid "Code"
+msgstr "Koodi"
+
+#. module: mobilepay_payment
+#: model:payment.provider,name:mobilepay_payment.payment_provider_mobilepay
+msgid "MobilePay"
+msgstr "MobilePay"
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Payment initiation failed: %s"
+msgstr "Maksun aloitus epäonnistui: %s"
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Only confirmed transactions can be refunded."
+msgstr "Vain vahvistetut tapahtumat voidaan palauttaa."
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Refund failed: %s"
+msgstr "Palautus epäonnistui: %s"
+
+#. module: mobilepay_payment
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Cancellation failed: %s"
+msgstr "Peruutus epäonnistui: %s"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_description:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Capture Flow"
+msgstr "Veloitusprosessi"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_selection:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Manual Capture"
+msgstr "Manuaalinen veloitus"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_selection:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Capture on Delivery"
+msgstr "Veloitus toimituksen yhteydessä"
+
+#. module: mobilepay_payment
+#: model:payment.provider,field_selection:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Automatic Capture after Delay"
+msgstr "Automaattinen veloitus viiveen jälkeen"
+
+#. module: mobilepay_payment
+#: model:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Choose whether payments are captured manually, automatically after a delay, or automatically on delivery."
+msgstr "Valitse, veloitetaanko maksut manuaalisesti, automaattisesti viiveen jälkeen vai automaattisesti toimituksen yhteydessä."
+
+#. module: mobilepay_payment
+#: model:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Delay in hours before automatic capture when the selected capture flow is Automatic Capture after Delay."
+msgstr "Viive tunneissa ennen automaattista veloitusta, kun valittu veloitusprosessi on Automaattinen veloitus viiveen jälkeen."
+
+
+#. module: mobilepay_payment
+msgid "Here, you can pay with MobilePay"
+msgstr "Täällä voit maksaa MobilePaylla"
+
+#. module: mobilepay_payment
+msgid "Please enter a valid Danish phone number (8 digits, optionally with +45)."
+msgstr "Anna kelvollinen tanskalainen puhelinnumero (8 numeroa, mahdollisesti +45)."
+
+#. module: mobilepay_payment
+msgid "Webhook Registration Successful"
+msgstr "Webhookin rekisteröinti onnistui"
+
+#. module: mobilepay_payment
+msgid "Webhook Registration Failed"
+msgstr "Webhookin rekisteröinti epäonnistui"
+
+#. module: mobilepay_payment
+msgid "System base URL is not configured (web.base.url)."
+msgstr "Järjestelmän perus-URL-osoitetta ei ole määritetty (web.base.url)."
+
+#. module: mobilepay_payment
+msgid "Failed to register webhook: %s"
+msgstr "Webhookin rekisteröinti epäonnistui: %s"
+
+#. module: mobilepay_payment
+msgid "Invalid webhook registration response from MobilePay API"
+msgstr "Virheellinen webhookin rekisteröintivastaus MobilePay API:lta"
+
+#. module: mobilepay_payment
+msgid "No webhook ID available for connectivity test"
+msgstr "Webhook-tunnusta ei ole saatavilla yhteystestiä varten"
+
+#. module: mobilepay_payment
+msgid "No Webhook Registered"
+msgstr "Webhookia ei ole rekisteröity"
+
+#. module: mobilepay_payment
+msgid "Webhook Unregistered"
+msgstr "Webhookin rekisteröinti poistettu"
+
+#. module: mobilepay_payment
+msgid "Webhook Unregistration Failed"
+msgstr "Webhookin rekisteröinnin poisto epäonnistui"
+
+#. module: mobilepay_payment
+msgid "Failed to unregister webhook: %s"
+msgstr "Webhookin rekisteröinnin poisto epäonnistui: %s"
+
+#. module: mobilepay_payment
+msgid "Error unregistering webhook: %s"
+msgstr "Virhe poistettaessa webhookin rekisteröintiä: %s"
+
+#. module: mobilepay_payment
+msgid "Found %s registered webhooks. Check Odoo logs for details."
+msgstr "Löydettiin %s rekisteröityä webhookia. Tarkista Odoon lokit saadaksesi lisätietoja."
+
+#. module: mobilepay_payment
+msgid "Webhook List"
+msgstr "Webhook-luettelo"
+
+#. module: mobilepay_payment
+msgid "Failed to fetch webhooks: %s"
+msgstr "Webhookien nouto epäonnistui: %s"
+
+#. module: mobilepay_payment
+msgid "Webhooks Cleaned"
+msgstr "Webhookit siivottu"
+
+#. module: mobilepay_payment
+msgid "Successfully unregistered %s webhooks."
+msgstr "%s webhookin rekisteröinti poistettiin onnistuneesti."
+
+#. module: mobilepay_payment
+msgid "Failed to clean webhooks: %s"
+msgstr "Webhookien siivous epäonnistui: %s"
+
+#. module: mobilepay_payment
+msgid "No webhook ID stored to unregister."
+msgstr "Ei tallennettua webhook-tunnusta, jonka rekisteröinti voitaisiin poistaa."
+
+#. module: mobilepay_payment
+msgid "Webhook Forced Out"
+msgstr "Webhook pakotettu ulos"
+
+#. module: mobilepay_payment
+msgid "Attempted to unregister stored ID and cleared local state."
+msgstr "Yritettiin poistaa tallennetun tunnuksen rekisteröinti ja tyhjennettiin paikallinen tila."
+
+#. module: mobilepay_payment
+msgid "Local State Cleared"
+msgstr "Paikallinen tila tyhjennetty"
+
+#. module: mobilepay_payment
+msgid "API unregistration failed, but Odoo credentials were cleared."
+msgstr "API-rekisteröinnin poisto epäonnistui, mutta Odoon tunnistetiedot tyhjennettiin."
+
+#. module: mobilepay_payment
+msgid "Network error while connecting to MobilePay API: %s"
+msgstr "Verkkovirhe yhdistettäessä MobilePay API:iin: %s"
+
+#. module: mobilepay_payment
+msgid "Payment capture failed: %s"
+msgstr "Maksun veloitus epäonnistui: %s"
+
+
+#. module: mobilepay_payment
+msgid "Test API Connection"
+msgstr "Testaa API-yhteys"
+
+#. module: mobilepay_payment
+msgid "Connection Successful"
+msgstr "Yhteys onnistui"
+
+#. module: mobilepay_payment
+msgid "Successfully connected to the MobilePay API! Your credentials are valid."
+msgstr "Yhdistettiin onnistuneesti MobilePay API:iin! Tunnistetietosi ovat kelvolliset."
+
+#. module: mobilepay_payment
+msgid "Connection failed: %s"
+msgstr "Yhteys epäonnistui: %s"
+
+#. module: mobilepay_payment
+msgid "Open Vipps MobilePay Portal"
+msgstr "Avaa Vipps MobilePay -portaali"
+
+#. module: mobilepay_payment
+#: model:payment.provider,name:mobilepay_payment.payment_provider_mobilepay
+msgid "Vipps MobilePay"
+msgstr "Vipps MobilePay"
+
+#. module: mobilepay_payment
+#: model:payment.method,name:mobilepay_payment.payment_method_vipps
+msgid "Vipps"
+msgstr "Vipps"
