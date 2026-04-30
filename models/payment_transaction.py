@@ -87,33 +87,33 @@ class PaymentTransaction(models.Model):
                 and transaction.authorized_amount > 0
             )
 
-    def _convert_dkk_to_ore(self, amount_dkk):
+    def _convert_to_minor_units(self, amount):
         """
-        Convert DKK amount to øre for MobilePay API.
+        Convert amount to minor units (e.g. øre or cents) for API.
 
         Args:
-            amount_dkk (float): Amount in DKK
+            amount (float): Amount in major units
 
         Returns:
-            int: Amount in øre (DKK * 100)
+            int: Amount in minor units (* 100)
         """
-        if not amount_dkk:
+        if not amount:
             return 0
-        return int(round(amount_dkk * 100))
+        return int(round(amount * 100))
 
-    def _convert_ore_to_dkk(self, amount_ore):
+    def _convert_from_minor_units(self, amount_minor):
         """
-        Convert øre amount to DKK from MobilePay API.
+        Convert minor units amount to major units from API.
 
         Args:
-            amount_ore (int): Amount in øre
+            amount_minor (int): Amount in minor units
 
         Returns:
-            float: Amount in DKK (øre / 100)
+            float: Amount in major units (/ 100)
         """
-        if not amount_ore:
+        if not amount_minor:
             return 0.0
-        return float(amount_ore) / 100.0
+        return float(amount_minor) / 100.0
 
     def _parse_mobilepay_amount(self, amount_data):
         """
@@ -166,7 +166,7 @@ class PaymentTransaction(models.Model):
             phone_number (str): Phone number in various formats
 
         Returns:
-            str: Phone number in digits only (45XXXXXXXX) or None if invalid
+            str: Phone number in digits only (with country prefix) or None if invalid
         """
         if not phone_number:
             return None
@@ -174,16 +174,21 @@ class PaymentTransaction(models.Model):
         # Remove all non-digit characters
         digits_only = re.sub(r"\D", "", phone_number)
 
-        # Handle Danish phone numbers specifically
-        if len(digits_only) == 8:
-            # Add Danish country code (digits only)
-            return f"45{digits_only}"
-        elif digits_only.startswith("0045") and len(digits_only) == 12:
-            # Remove leading 00
-            return digits_only[2:]
-        elif digits_only.startswith("45") and len(digits_only) == 10:
-            # Already has country code
-            return digits_only
+        # Handle numbers without explicit country code
+        if len(digits_only) <= 10 and not digits_only.startswith(("45", "47", "358", "00")):
+            # Infer from currency or partner country
+            currency = self.currency_id.name if self.currency_id else "DKK"
+            country_code = self.partner_id.country_id.code if self.partner_id and self.partner_id.country_id else None
+            
+            if country_code == "NO" or currency == "NOK":
+                digits_only = f"47{digits_only}"
+            elif country_code == "FI" or currency == "EUR":
+                digits_only = f"358{digits_only}"
+            else:
+                digits_only = f"45{digits_only}"
+
+        if digits_only.startswith("00"):
+            digits_only = digits_only[2:]
 
         # Validate digits only (9-15 digits) as per API regex ^\d{9,15}$
         if 9 <= len(digits_only) <= 15:
@@ -219,8 +224,8 @@ class PaymentTransaction(models.Model):
         if not self.mobilepay_idempotency_key:
             self.mobilepay_idempotency_key = self._generate_idempotency_key(api_reference)
 
-        # Convert amount to øre
-        amount_ore = self._convert_dkk_to_ore(self.amount)
+        # Convert amount to minor units
+        amount_minor = self._convert_to_minor_units(self.amount)
 
         # Format customer phone number
         # Priority: 1. Context (from checkout form), 2. Partner phone, 3. Partner mobile
@@ -244,8 +249,8 @@ class PaymentTransaction(models.Model):
 
         payment_data = {
             "amount": {
-                "currency": "DKK",
-                "value": amount_ore,
+                "currency": self.currency_id.name,
+                "value": amount_minor,
             },
             "reference": api_reference,
             "userFlow": "WEB_REDIRECT",
@@ -441,13 +446,13 @@ class PaymentTransaction(models.Model):
         if not self.capture_eligible:
             raise UserError(_("This transaction is not eligible for capture."))
 
-        # Amount to capture (in øre)
-        amount_ore = self._convert_dkk_to_ore(self.amount)
+        # Amount to capture (in minor units)
+        amount_minor = self._convert_to_minor_units(self.amount)
 
         capture_data = {
             "amount": {
-                "currency": "DKK",
-                "value": amount_ore,
+                "currency": self.currency_id.name,
+                "value": amount_minor,
             },
         }
 
@@ -527,12 +532,12 @@ class PaymentTransaction(models.Model):
                 )
             )
 
-        amount_ore = self._convert_dkk_to_ore(refund_amount)
+        amount_minor = self._convert_to_minor_units(refund_amount)
 
         refund_data = {
             "amount": {
-                "currency": "DKK",
-                "value": amount_ore,
+                "currency": self.currency_id.name,
+                "value": amount_minor,
             },
         }
 

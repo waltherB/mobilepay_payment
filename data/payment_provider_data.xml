@@ -25,8 +25,8 @@
             <field name="sequence">10</field>
             <field name="image" type="base64" file="mobilepay_payment/static/description/icon.svg"/>
             <field name="provider_ids" eval="[(4, ref('payment_provider_mobilepay'))]"/>
-            <field name="supported_country_ids" eval="[(4, ref('base.dk'))]"/>
-            <field name="supported_currency_ids" eval="[(4, ref('base.DKK'))]"/>
+            <field name="supported_country_ids" eval="[(4, ref('base.dk')), (4, ref('base.no')), (4, ref('base.fi'))]"/>
+            <field name="supported_currency_ids" eval="[(4, ref('base.DKK')), (4, ref('base.NOK')), (4, ref('base.EUR'))]"/>
         </record>
 
     </data>

@@ -2,7 +2,7 @@
 {
     "version": "17.0.1.1.37",
     "category": "Accounting/Payment Providers",
-    "summary": "Payment Provider: MobilePay (Vipps) for Danish market",
+    "summary": "Payment Provider: MobilePay (Vipps) for Nordics (DK, NO, FI)",
     "description": """
 MobilePay Payment Provider for Odoo 17
 
@@ -12,7 +12,7 @@ This module integrates Vipps MobilePay ePayment API v3 with Odoo, providing:
 - Real-time webhook processing
 - Phone number pre-fill for enhanced UX
 - Secure credential management
-- Danish market support (DKK currency)
+- Nordic market support (DK, NO, FI) with DKK, NOK, and EUR currencies
 
 Supports both Odoo Enterprise and Community editions.
     """,

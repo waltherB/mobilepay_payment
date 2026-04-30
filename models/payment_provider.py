@@ -531,8 +531,8 @@ class PaymentProvider(models.Model):
 
         if currency_id:
             currency = self.env["res.currency"].browse(currency_id)
-            if currency.name != "DKK":
-                # Filter out MobilePay providers for non-DKK currencies
+            if currency.name not in ["DKK", "NOK", "EUR"]:
+                # Filter out MobilePay providers for unsupported currencies
                 mobilepay_providers = providers.filtered(
                     lambda p: p.code == "mobilepay"
                 )
@@ -541,8 +541,6 @@ class PaymentProvider(models.Model):
                         f"MobilePay: Filtering out {len(mobilepay_providers)} providers because currency is {currency.name}"
                     )
                 providers = providers.filtered(lambda p: p.code != "mobilepay")
-
-        return providers
 
         return providers
 
