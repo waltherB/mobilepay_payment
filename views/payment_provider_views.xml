@@ -18,17 +18,18 @@
                                font="bold" class="text-primary h5 font-weight-bold mb-3"/>
                         <group string="Test Environment Credentials" name="test_credentials"
                                invisible="state == 'enabled'">
+                            <field name="mobilepay_test_merchant_serial" help="The 6-digit MSN (Merchant Serial Number) for the test unit."/>
                             <field name="mobilepay_test_client_id" help="The Client ID found in the Vipps Portal under Developer -> API Keys."/>
                             <field name="mobilepay_test_client_secret" password="True" help="The Client Secret found in the Vipps Portal."/>
                             <field name="mobilepay_test_subscription_key" password="True" help="The Ocp-Apim-Subscription-Key for the API product."/>
-                            <field name="mobilepay_test_merchant_serial" help="The 6-digit MSN (Merchant Serial Number) for the test unit."/>
+                            
                         </group>
                         <group string="Production Environment Credentials" name="prod_credentials"
                                invisible="state != 'enabled'">
+                            <field name="mobilepay_prod_merchant_serial" help="The 6-digit MSN (Merchant Serial Number) for the production unit."/>
                             <field name="mobilepay_prod_client_id" help="The Client ID found in the Vipps Portal under Developer -> API Keys."/>
                             <field name="mobilepay_prod_client_secret" password="True" help="The Client Secret found in the Vipps Portal."/>
                             <field name="mobilepay_prod_subscription_key" password="True" help="The Ocp-Apim-Subscription-Key for the API product."/>
-                            <field name="mobilepay_prod_merchant_serial" help="The 6-digit MSN (Merchant Serial Number) for the production unit."/>
                         </group>
                         <group string="Webhook Configuration" name="webhook_config">
                             <field name="mobilepay_webhook_id"/>
