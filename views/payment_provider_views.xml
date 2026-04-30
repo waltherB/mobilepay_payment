@@ -47,30 +47,30 @@
                             </div>
                         </group>
                         
-                        <group string="Diagnostic / Recovery Tools" name="diagnostic_tools" class="oe_edit_only">
+                        <group string="Diagnostic / Recovery Tools" name="diagnostic_tools">
                             <p class="text-muted small" colspan="2">
                                 Use these tools to verify API connectivity and manage webhook registrations.
                             </p>
                             <button name="action_test_connection" 
                                     string="Test API Connection" 
                                     type="object" 
-                                    class="btn-primary"
+                                    class="btn-primary oe_edit_only"
                                     icon="fa-check-circle"
                                     help="Attempts to fetch an authentication token from the MobilePay API to verify credentials."/>
                             <button name="action_list_webhooks" 
                                     string="List All Active Webhooks" 
                                     type="object" 
-                                    class="btn-link"
+                                    class="btn-link oe_edit_only"
                                     help="Logs all webhooks registered on the MobilePay server for this MSN."/>
                             <button name="action_unregister_all_webhooks" 
                                     string="FORCE CLEAN ALL WEBHOOKS" 
                                     type="object" 
-                                    class="btn-danger"
+                                    class="btn-danger oe_edit_only"
                                     confirm="Are you sure? This will remove ALL webhook registrations from MobilePay/Vipps for this MSN."/>
                             <button name="action_force_unregister_stored_webhook"
                                     string="Wipe Local Webhook Credentials"
                                     type="object"
-                                    class="btn-secondary"
+                                    class="btn-secondary oe_edit_only"
                                     invisible="not mobilepay_webhook_id"
                                     help="Clears the Webhook ID and Secret from Odoo manually."/>
                         </group>
