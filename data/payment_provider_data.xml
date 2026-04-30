@@ -3,7 +3,7 @@
     <data noupdate="False">
         <!-- MobilePay Payment Provider -->
         <record id="payment_provider_mobilepay" model="payment.provider">
-            <field name="name">MobilePay</field>
+            <field name="name">Vipps MobilePay</field>
             <field name="image_128" type="base64" file="mobilepay_payment/static/description/icon.svg"/>
             <field name="code">mobilepay</field>
             <field name="state">disabled</field>
@@ -18,15 +18,26 @@
             <field name="redirect_form_view_id" ref="mobilepay_redirect_form"/>
         </record>
 
-        <!-- MobilePay Payment Method -->
+        <!-- MobilePay Payment Method (DK, FI) -->
         <record id="payment_method_mobilepay" model="payment.method">
             <field name="name">MobilePay</field>
             <field name="code">mobilepay</field>
             <field name="sequence">10</field>
             <field name="image" type="base64" file="mobilepay_payment/static/description/icon.svg"/>
             <field name="provider_ids" eval="[(4, ref('payment_provider_mobilepay'))]"/>
-            <field name="supported_country_ids" eval="[(4, ref('base.dk')), (4, ref('base.no')), (4, ref('base.fi'))]"/>
-            <field name="supported_currency_ids" eval="[(4, ref('base.DKK')), (4, ref('base.NOK')), (4, ref('base.EUR'))]"/>
+            <field name="supported_country_ids" eval="[(4, ref('base.dk')), (4, ref('base.fi'))]"/>
+            <field name="supported_currency_ids" eval="[(4, ref('base.DKK')), (4, ref('base.EUR'))]"/>
+        </record>
+
+        <!-- Vipps Payment Method (NO) -->
+        <record id="payment_method_vipps" model="payment.method">
+            <field name="name">Vipps</field>
+            <field name="code">vipps</field>
+            <field name="sequence">11</field>
+            <field name="image" type="base64" file="mobilepay_payment/static/description/vipps_icon.svg"/>
+            <field name="provider_ids" eval="[(4, ref('payment_provider_mobilepay'))]"/>
+            <field name="supported_country_ids" eval="[(4, ref('base.no'))]"/>
+            <field name="supported_currency_ids" eval="[(4, ref('base.NOK'))]"/>
         </record>
 
     </data>
