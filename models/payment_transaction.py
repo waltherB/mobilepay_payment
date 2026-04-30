@@ -332,6 +332,14 @@ class PaymentTransaction(models.Model):
 
         return f"{self.provider_id.get_base_url()}/payment/mobilepay/return?reference={self.reference}"
 
+    def _set_authorized(self, **kwargs):
+        """Override to ensure capture_manually is respected for MobilePay."""
+        for tx in self:
+            if tx.provider_code == "mobilepay" and tx.provider_id.capture_on_delivery:
+                tx.capture_manually = True
+        return super()._set_authorized(**kwargs)
+
+
     def _mobilepay_get_payment_status(self):
         """
         Poll MobilePay API for current payment status.
