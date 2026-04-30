@@ -133,7 +133,6 @@ class PaymentProvider(models.Model):
                 values["mobilepay_webhook_secret_encrypted"] = False
             del values["mobilepay_webhook_secret"]
 
-    def write(self, values):
         return super().write(values)
 
     show_mobilepay_fields = fields.Boolean(
@@ -541,8 +540,6 @@ class PaymentProvider(models.Model):
                         f"MobilePay: Filtering out {len(mobilepay_providers)} providers because currency is {currency.name}"
                     )
                 providers = providers.filtered(lambda p: p.code != "mobilepay")
-
-        return providers
 
         return providers
 
