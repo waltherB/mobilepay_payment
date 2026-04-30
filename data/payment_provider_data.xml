@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="False">
+    <data noupdate="True">
         <!-- MobilePay Payment Provider -->
         <record id="payment_provider_mobilepay" model="payment.provider">
             <field name="name">MobilePay</field>
