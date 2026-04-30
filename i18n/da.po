@@ -225,3 +225,13 @@ msgstr "Forbindelse mislykkedes: %s"
 #. module: mobilepay_payment
 msgid "Open Vipps MobilePay Portal"
 msgstr "Åbn Vipps MobilePay Portal"
+
+#. module: mobilepay_payment
+#: model:payment.provider,name:mobilepay_payment.payment_provider_mobilepay
+msgid "Vipps MobilePay"
+msgstr "Vipps MobilePay"
+
+#. module: mobilepay_payment
+#: model:payment.method,name:mobilepay_payment.payment_method_vipps
+msgid "Vipps"
+msgstr "Vipps"
