@@ -44,6 +44,7 @@ Supports both Odoo Enterprise and Community editions.
     "installable": True,
     "application": False,
     "auto_install": False,
+    "uninstall_hook": "uninstall_hook",
     "external_dependencies": {
         "python": ["requests", "cryptography"],
     },
