@@ -168,8 +168,8 @@ class PaymentProvider(models.Model):
         super()._compute_feature_support_fields()
         self.filtered(lambda p: p.code == "mobilepay").update(
             {
-                "support_manual_capture": "full",
-                "support_refund": "full",
+                "support_manual_capture": "partial",
+                "support_refund": "partial",
                 "support_tokenization": False,
             }
         )
