@@ -76,7 +76,7 @@ class PaymentTransaction(models.Model):
         store=False,
     )
 
-    @api.depends("state", "mobilepay_status", "provider_id.code")
+    @api.depends("state", "mobilepay_status", "provider_id.code", "authorized_amount")
     def _compute_capture_eligible(self):
         """Compute whether transaction is eligible for manual capture."""
         for transaction in self:
@@ -435,22 +435,26 @@ class PaymentTransaction(models.Model):
             if vals:
                 self.write(vals)
 
-    def action_capture(self):
+    def _send_capture_request(self, amount_to_capture=None):
         """
-        Capture the authorized payment.
-
-        Returns:
-            dict: The result of the capture operation
+        Request the capture of the transaction.
+        
+        Args:
+            amount_to_capture (float, optional): The amount to capture. If not set,
+                                                the full transaction amount is captured.
         """
         self.ensure_one()
         if self.provider_id.code != "mobilepay":
-            return super().action_capture()
+            return super()._send_capture_request(amount_to_capture=amount_to_capture)
 
         if not self.capture_eligible:
             raise UserError(_("This transaction is not eligible for capture."))
 
+        # Use amount_to_capture if provided, otherwise the full transaction amount
+        capture_amount = amount_to_capture or self.amount
+
         # Amount to capture (in øre)
-        amount_ore = self._convert_dkk_to_ore(self.amount)
+        amount_ore = self._convert_dkk_to_ore(capture_amount)
 
         capture_data = {
             "modificationAmount": {
@@ -469,8 +473,19 @@ class PaymentTransaction(models.Model):
             )
 
             # Update transaction state and amounts
-            self._set_done()
-            self.write({"captured_amount": self.amount, "mobilepay_status": "CAPTURED"})
+            new_captured_amount = self.captured_amount + capture_amount
+            # If fully captured (or close to it)
+            if new_captured_amount >= self.authorized_amount - 0.01:
+                self._set_done()
+                self.write({
+                    "captured_amount": new_captured_amount,
+                    "mobilepay_status": "CAPTURED",
+                })
+            else:
+                self.write({
+                    "captured_amount": new_captured_amount,
+                    "mobilepay_status": "PARTIALLY_CAPTURED",
+                })
 
             return True
 

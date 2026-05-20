@@ -52,11 +52,11 @@ class TestAutoCaptureSimulation(unittest.TestCase):
                         and tx.provider_id.capture_on_delivery
                         and tx.state == "authorized"
                     ):
-                        tx.action_capture()
+                        tx._send_capture_request()
 
         # ASSERT
-        mock_tx.action_capture.assert_called_once()
-        print("✓ Auto-capture action_capture() was called correctly")
+        mock_tx._send_capture_request.assert_called_once()
+        print("✓ Auto-capture _send_capture_request() was called correctly")
 
 
 if __name__ == "__main__":

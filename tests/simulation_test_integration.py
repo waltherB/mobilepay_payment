@@ -146,7 +146,7 @@ class PaymentTransaction(MockRecord):
         elif data['status'] == 'CAPTURED':
              self.write({'state': 'done'})
              
-    def action_capture(self):
+    def _send_capture_request(self, amount_to_capture=None):
         logger.info(f"  [Tx] Executing Manual Capture")
         api = self.env['mobilepay.api.client']
         api.capture_payment(self.provider_id, self.mobilepay_payment_id, {})
@@ -229,7 +229,7 @@ def run_integration_test():
 
     # 4. Manual Capture
     print("\n[Step 4] Manual Capture")
-    tx.action_capture()
+    tx._send_capture_request()
     
     if tx.state == 'done' and tx.captured_amount == 100.0:
         print("✓ Payment CAPTURED successfully")

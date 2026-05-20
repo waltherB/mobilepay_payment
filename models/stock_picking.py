@@ -48,7 +48,7 @@ class StockPicking(models.Model):
                         _logger.info(
                             f"Auto-capturing MobilePay transaction {tx.reference} for picking {picking.name}"
                         )
-                        tx.action_capture()
+                        tx._send_capture_request()
                     except Exception as e:
                         _logger.error(
                             f"Failed to auto-capture transaction {tx.reference}: {str(e)}"

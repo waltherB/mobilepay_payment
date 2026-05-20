@@ -11,7 +11,9 @@ import datetime
 class SimulatedTransaction:
     def __init__(self, provider_code='mobilepay', state='authorized', 
                  mobilepay_status='RESERVED', amount=100.0, create_date=None):
-        self.provider_id = type('MockProvider', (), {'code': provider_code})()
+        self.provider_code = provider_code
+        self.provider_id = MagicMock()
+        self.provider_id.code = provider_code
         self.state = state
         self.mobilepay_status = mobilepay_status
         self.amount = amount
@@ -19,7 +21,6 @@ class SimulatedTransaction:
         self.captured_amount = 0.0
         self.mobilepay_payment_id = "test_payment_id"
         self.reference = "TEST-REF"
-        self.provider_id = Mock()
         self.env = MagicMock()
         
         # Simulate Odoo fields
@@ -48,7 +49,7 @@ class SimulatedTransaction:
         if 'mobilepay_status' in vals:
             self.mobilepay_status = vals['mobilepay_status']
 
-    def action_capture(self):
+    def _send_capture_request(self, amount_to_capture=None):
         print(f"  Action: Capture transaction {self.reference}")
         if self.provider_code != 'mobilepay':
             print("    -> Not mobilepay provider, skipping")
@@ -110,7 +111,7 @@ def test_manual_capture():
     # Case 1: Eligible transaction
     print("\nCase 1: Eligible Transaction")
     tx = SimulatedTransaction()
-    result = tx.action_capture()
+    result = tx._send_capture_request()
     if result and tx.state == 'done' and tx.mobilepay_status == 'CAPTURED':
         print("✓ Capture successful")
     else:
@@ -120,7 +121,7 @@ def test_manual_capture():
     # Case 2: Ineligible transaction (already captured/done)
     print("\nCase 2: Ineligible Transaction (Already Done)")
     tx = SimulatedTransaction(state='done', mobilepay_status='CAPTURED')
-    result = tx.action_capture()
+    result = tx._send_capture_request()
     if not result:
         print("✓ Capture correctly blocked")
     else:
