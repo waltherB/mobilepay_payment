@@ -18,7 +18,7 @@ class TestMobilePayFeatureSupport(TransactionCase):
         # Trigger compute
         self.provider._compute_feature_support_fields()
         
-        self.assertEqual(self.provider.support_manual_capture, 'full',
+        self.assertEqual(self.provider.support_manual_capture, 'partial',
                          "MobilePay should support partial manual capture")
         self.assertEqual(self.provider.support_refund, 'partial',
                          "MobilePay should support partial refunds")
