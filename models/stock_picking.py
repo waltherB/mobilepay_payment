@@ -9,16 +9,13 @@ _logger = logging.getLogger(__name__)
 class StockPicking(models.Model):
     _inherit = "stock.picking"
 
-    def button_validate(self):
+    def _action_done(self):
         """
-        Extend validation to automatically capture MobilePay payments if configured.
+        Extend validation to automatically capture MobilePay payments if configured
+        when the picking transitions to done.
         """
-        res = super(StockPicking, self).button_validate()
-
-        # Ensure the picking is validated successfully
-        if res is True or (isinstance(res, dict) and not res.get("res_model")):
-            self._mobilepay_auto_capture_payments()
-
+        res = super(StockPicking, self)._action_done()
+        self._mobilepay_auto_capture_payments()
         return res
 
     def _mobilepay_auto_capture_payments(self):
