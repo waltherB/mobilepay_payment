@@ -11,14 +11,16 @@ def test_localization():
     print("Testing Localization")
     print("=" * 40)
     
-    # Path relative to script execution from root
+    # Path relative to script execution
     po_file_path = 'mobilepay_payment/i18n/da.po'
-    
+    if not os.path.exists(po_file_path):
+        po_file_path = 'i18n/da.po'
+        
     # 1. Check file existence
     if os.path.exists(po_file_path):
         print(f"✓ File exists: {po_file_path}")
     else:
-        print(f"✗ File missin: {po_file_path}")
+        print(f"✗ File missing: {po_file_path} (also checked mobilepay_payment/i18n/da.po)")
         return False
         
     # 2. Check content

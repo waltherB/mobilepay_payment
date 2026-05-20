@@ -19,7 +19,7 @@ class SimulatedTransaction:
         self.mobilepay_payment_id = "test_payment_id"
         self.reference = "TEST-REF"
         self.mobilepay_status = 'CAPTURED'
-        self.provider_id = Mock()
+        self.provider_id = Mock(code=provider_code)
         self.env = MagicMock()
         
     def _convert_dkk_to_ore(self, amount):

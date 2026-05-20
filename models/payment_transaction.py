@@ -332,12 +332,13 @@ class PaymentTransaction(models.Model):
 
         return f"{self.provider_id.get_base_url()}/payment/mobilepay/return?reference={self.reference}"
 
-    def _set_authorized(self, **kwargs):
-        """Override to ensure capture_manually is respected for MobilePay."""
-        for tx in self:
-            if tx.provider_code == "mobilepay" and tx.provider_id.capture_on_delivery:
-                tx.capture_manually = True
-        return super()._set_authorized(**kwargs)
+    def _set_authorized(self, state_message=None, extra_allowed_states=(), **kwargs):
+        """Override to ensure standard compatibility and MRO propagation."""
+        return super()._set_authorized(
+            state_message=state_message,
+            extra_allowed_states=extra_allowed_states,
+            **kwargs
+        )
 
 
     def _mobilepay_get_payment_status(self):
