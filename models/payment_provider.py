@@ -266,7 +266,7 @@ class PaymentProvider(models.Model):
     mobilepay_merchant_serial = fields.Char(
         string="Merchant Serial Number",
         help="Active MobilePay Merchant Serial Number (auto-selected based on state)",
-        compute="_compute_active_merchant_serial",
+        compute="_compute_active_credentials",
         store=False,
         compute_sudo=True,
     )
@@ -422,6 +422,7 @@ class PaymentProvider(models.Model):
         "mobilepay_prod_client_id",
         "mobilepay_prod_client_secret_encrypted",
         "mobilepay_prod_subscription_key_encrypted",
+        "mobilepay_prod_merchant_serial",
     )
     def _compute_active_credentials(self):
         """Compute non-stored MobilePay credentials."""
@@ -440,6 +441,9 @@ class PaymentProvider(models.Model):
                     )
                     if provider.mobilepay_prod_subscription_key_encrypted
                     else False
+                )
+                provider.mobilepay_merchant_serial = (
+                    provider.mobilepay_prod_merchant_serial
                 )
             else:
                 # Test mode (test or disabled)

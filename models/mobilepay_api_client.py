@@ -260,7 +260,7 @@ class MobilePayApiClient(models.AbstractModel):
             data=capture_data,
             idempotency_key=idempotency_key,
         )
-        return self._handle_response(response)
+        return self._handle_response(response, expected_status=200)
 
     def refund_payment(self, provider, payment_id, refund_data, idempotency_key=None):
         """

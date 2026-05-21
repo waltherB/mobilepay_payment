@@ -30,8 +30,9 @@ class StockPicking(models.Model):
                 continue
 
             for sale_order in sale_orders:
-                # Find authorized MobilePay transactions
-                transactions = sale_order.transaction_ids.filtered(
+                # Use sudo() to ensure payment provider fields are accessible
+                # regardless of the user context during delivery validation
+                transactions = sale_order.sudo().transaction_ids.filtered(
                     lambda tx: (
                         tx.provider_id.code == "mobilepay"
                         and tx.provider_id.capture_on_delivery
@@ -45,7 +46,7 @@ class StockPicking(models.Model):
                         _logger.info(
                             f"Auto-capturing MobilePay transaction {tx.reference} for picking {picking.name}"
                         )
-                        tx._send_capture_request()
+                        tx.sudo()._send_capture_request()
                     except Exception as e:
                         _logger.error(
                             f"Failed to auto-capture transaction {tx.reference}: {str(e)}"

@@ -119,8 +119,8 @@ class PaymentTransaction(models.Model):
         """
         Parse a MobilePay amount payload into DKK.
 
-        MobilePay may return a plain integer amount in øre, or a nested object
-        with currency/value fields. This helper tries to infer the unit used.
+        MobilePay returns amount objects with a 'value' field in minor units (øre).
+        This helper extracts the value and converts it to DKK.
         """
         if not amount_data:
             return 0.0
@@ -135,13 +135,9 @@ class PaymentTransaction(models.Model):
         except (TypeError, ValueError):
             return 0.0
 
-        if self.amount and abs(amount_value - float(self.amount) * 100) < 0.01:
-            return amount_value / 100.0
-
-        if amount_value >= 1000:
-            return amount_value / 100.0
-
-        return amount_value
+        # MobilePay API always returns amounts in minor units (øre for DKK).
+        # Convert to major units (DKK) by dividing by 100.
+        return amount_value / 100.0
 
     def _generate_idempotency_key(self, api_reference=None):
         """
