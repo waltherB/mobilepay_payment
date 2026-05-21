@@ -59,3 +59,9 @@ venv.bak/
 #.agents/
 .smallcode
 
+skills-lock.json
+.agents/skills/odoo-development/SKILL.md
+.code-graph/graph.db-shm
+.code-graph/graph.db-wal
+.memory/memory.db-shm
+.memory/memory.db-wal
