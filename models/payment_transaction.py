@@ -362,6 +362,10 @@ class PaymentTransaction(models.Model):
 
             # Normalize status from either Vipps 'status' or 'state'
             raw_status = status_data.get("status") or status_data.get("state")
+            # The ePayment API returns 'state' as an array (e.g. ["AUTHORIZED"]).
+            # Normalize to a plain string.
+            if isinstance(raw_status, list):
+                raw_status = raw_status[0] if raw_status else None
 
             # Update status field and timestamp
             self.write(
@@ -390,6 +394,10 @@ class PaymentTransaction(models.Model):
             status_data (dict): Payment status data from API
         """
         status = status_data.get("status") or status_data.get("state")
+        # The ePayment API returns 'state' as an array (e.g. ["AUTHORIZED"]).
+        # Normalize to a plain string.
+        if isinstance(status, list):
+            status = status[0] if status else None
         if not status:
             _logger.warning(
                 "MobilePay status poll returned no status for transaction %s: %s",
@@ -405,6 +413,10 @@ class PaymentTransaction(models.Model):
             self._set_done()
         elif status in ["CANCELLED", "EXPIRED", "ABORTED", "TERMINATED"]:
             self._set_canceled()
+        elif status == "REFUNDED":
+            # A fully refunded payment stays in 'done' in Odoo but we update amounts below.
+            # If the refunded amount equals the captured amount, move to canceled.
+            pass
         else:
             _logger.warning(
                 "MobilePay status '%s' is not mapped to an Odoo state for transaction %s",
@@ -431,6 +443,16 @@ class PaymentTransaction(models.Model):
 
             if vals:
                 self.write(vals)
+
+            # If fully refunded, update mobilepay_status
+            if status == "REFUNDED":
+                captured = vals.get("captured_amount", self.captured_amount)
+                refunded = vals.get("refunded_amount", self.refunded_amount)
+                self.write({"mobilepay_status": "REFUNDED"})
+                _logger.info(
+                    "MobilePay transaction %s refunded: captured=%.2f, refunded=%.2f",
+                    self.reference, captured, refunded,
+                )
 
     def _send_capture_request(self, amount_to_capture=None):
         """
