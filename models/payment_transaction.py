@@ -329,7 +329,7 @@ class PaymentTransaction(models.Model):
             _logger.error(
                 f"MobilePay payment initiation failed for transaction {self.reference}: {str(e)}"
             )
-            self._set_error(f"Payment initiation failed: {str(e)}")
+            self._set_error(_("Payment initiation failed: %s") % str(e))
             raise UserError(_("Payment initiation failed: %s") % str(e))
 
         return f"{self.provider_id.get_base_url()}/payment/mobilepay/return?reference={self.reference}"
@@ -450,13 +450,13 @@ class PaymentTransaction(models.Model):
 
             status_icon = "✅" if success else "❌"
             lines = [
-                f"{status_icon} <b>MobilePay Event: {name}</b>",
-                f"Time: {timestamp}",
+                _("%(icon)s <b>MobilePay Event: %(name)s</b>", icon=status_icon, name=name),
+                _("Time: %(timestamp)s", timestamp=timestamp),
             ]
             if amount_str:
-                lines.append(f"Amount: {amount_str}")
+                lines.append(_("Amount: %(amount)s", amount=amount_str))
             if ikey:
-                lines.append(f"Key: {ikey}")
+                lines.append(_("Key: %(key)s", key=ikey))
 
             self.message_post(
                 body="<br/>".join(lines),
