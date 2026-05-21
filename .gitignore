@@ -57,4 +57,5 @@ venv.bak/
 .kiro/
 #.cursor/
 #.agents/
+.smallcode
 
