@@ -249,7 +249,13 @@ class PaymentTransaction(models.Model):
             "paymentMethod": {
                 "type": "WALLET",
             },
+            "paymentDescription": self._mobilepay_build_payment_description(),
         }
+
+        # Add receipt / order lines if available
+        receipt = self._mobilepay_build_receipt()
+        if receipt:
+            payment_data["receipt"] = receipt
 
         # Add customer information if available
         if self.partner_id:
@@ -339,7 +345,8 @@ class PaymentTransaction(models.Model):
 
     def _mobilepay_get_payment_status(self):
         """
-        Poll MobilePay API for current payment status.
+        Poll MobilePay API for current payment status and fetch the event log.
+        The event log is written to the chatter for support traceability.
 
         Returns:
             dict: Payment status data
@@ -378,6 +385,16 @@ class PaymentTransaction(models.Model):
             # Process the status update
             self._mobilepay_process_status(status_data)
 
+            # Fetch and log the payment event log for support traceability.
+            # Errors here are non-fatal — status update already succeeded above.
+            try:
+                self._mobilepay_fetch_and_log_events()
+            except Exception as e:
+                _logger.warning(
+                    "MobilePay: Could not fetch event log for %s: %s",
+                    self.reference, str(e),
+                )
+
             return status_data
 
         except Exception as e:
@@ -385,6 +402,95 @@ class PaymentTransaction(models.Model):
                 f"Failed to poll status for transaction {self.reference}: {str(e)}"
             )
             return None
+
+    def _mobilepay_fetch_and_log_events(self):
+        """
+        Fetch the payment event log from MobilePay and post new events to the
+        transaction chatter. This satisfies the checklist requirement to integrate
+        GET /epayment/v1/payments/{reference}/events and makes the full payment
+        history available to support staff directly in Odoo.
+
+        Only events not already logged are posted, so repeated calls are idempotent.
+        """
+        self.ensure_one()
+        if not self.mobilepay_payment_id:
+            return
+
+        api_client = self.env["mobilepay.api.client"]
+        events = api_client.get_payment_events(
+            self.provider_id, self.mobilepay_payment_id
+        )
+
+        if not events or not isinstance(events, list):
+            return
+
+        # Collect idempotency keys already posted to avoid duplicate chatter entries
+        existing_keys = set()
+        for msg in self.message_ids:
+            body = msg.body or ""
+            # Keys are embedded as "Key: <value>" in the message body
+            for line in body.split("\n"):
+                if line.startswith("Key:"):
+                    existing_keys.add(line.split(":", 1)[1].strip())
+
+        for event in events:
+            ikey = event.get("idempotencyKey") or ""
+            if ikey and ikey in existing_keys:
+                continue  # already logged
+
+            name = event.get("name", "UNKNOWN")
+            timestamp = event.get("timestamp", "")
+            success = event.get("success", True)
+            amount_data = event.get("amount", {})
+            amount_str = ""
+            if amount_data:
+                value = amount_data.get("value", 0)
+                currency = amount_data.get("currency", "DKK")
+                amount_str = f"{value / 100:.2f} {currency}"
+
+            status_icon = "✅" if success else "❌"
+            lines = [
+                f"{status_icon} <b>MobilePay Event: {name}</b>",
+                f"Time: {timestamp}",
+            ]
+            if amount_str:
+                lines.append(f"Amount: {amount_str}")
+            if ikey:
+                lines.append(f"Key: {ikey}")
+
+            self.message_post(
+                body="<br/>".join(lines),
+                message_type="notification",
+                subtype_xmlid="mail.mt_note",
+            )
+            _logger.info(
+                "MobilePay event logged for %s: %s at %s (success=%s)",
+                self.reference, name, timestamp, success,
+            )
+
+    def action_fetch_mobilepay_event_log(self):
+        """
+        Manual action: fetch and display the MobilePay payment event log.
+        Called from the transaction form view button for support use.
+        """
+        self.ensure_one()
+        if self.provider_id.code != "mobilepay":
+            raise UserError(_("This is not a MobilePay transaction."))
+        if not self.mobilepay_payment_id:
+            raise UserError(_("No MobilePay Payment ID found on this transaction."))
+
+        self._mobilepay_fetch_and_log_events()
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Event Log Fetched"),
+                "message": _("MobilePay payment events have been fetched and added to the chatter."),
+                "type": "success",
+                "sticky": False,
+            },
+        }
 
     def _mobilepay_process_status(self, status_data):
         """
@@ -515,24 +621,232 @@ class PaymentTransaction(models.Model):
             _logger.error(f"Failed to capture transaction {self.reference}: {str(e)}")
             raise UserError(_("Payment capture failed: %s") % str(e))
 
+    def _mobilepay_build_payment_description(self):
+        """
+        Build a human-readable payment description (3-100 chars) for the MobilePay app.
+        Uses the sale order name if available, otherwise falls back to the transaction reference.
+        """
+        self.ensure_one()
+        # Try to get the sale order name via the invoice/source document chain
+        description = None
+        sale_orders = self._get_sale_orders()
+        if sale_orders:
+            names = ", ".join(sale_orders.mapped("name"))
+            description = names[:100]
+
+        if not description:
+            description = self.reference[:100]
+
+        # API requires minimum 3 characters
+        if len(description) < 3:
+            description = description.ljust(3)
+
+        return description
+
+    def _mobilepay_build_receipt(self):
+        """
+        Build a receipt object with order lines for the MobilePay payment.
+        Returns None if no sale order lines are available.
+        The receipt improves the user experience in the MobilePay app and is
+        required for merchants using Content monitoring.
+        """
+        self.ensure_one()
+        sale_orders = self._get_sale_orders()
+        if not sale_orders:
+            return None
+
+        order_lines = []
+        for order in sale_orders:
+            for line in order.order_line:
+                if line.display_type:
+                    # Skip section/note lines
+                    continue
+                # Clean product name — only alphanumeric and spaces allowed
+                product_name = re.sub(r"[^a-zA-Z0-9 \-]", "", line.name or "")[:45]
+                if not product_name:
+                    product_name = "Product"
+                unit_info = {}
+                if line.product_uom:
+                    unit_info["unitOfMeasurement"] = line.product_uom.name[:20]
+                order_lines.append({
+                    "name": product_name,
+                    "id": str(line.id),
+                    "totalAmount": self._convert_dkk_to_ore(line.price_total),
+                    "totalAmountExcludingTax": self._convert_dkk_to_ore(line.price_subtotal),
+                    "totalTaxAmount": self._convert_dkk_to_ore(
+                        line.price_total - line.price_subtotal
+                    ),
+                    "taxRate": int(round(line.tax_id[0].amount * 100)) if line.tax_id else 0,
+                    "unitInfo": {
+                        "unitPrice": self._convert_dkk_to_ore(line.price_unit),
+                        "quantity": str(line.product_uom_qty),
+                        **unit_info,
+                    },
+                })
+
+        if not order_lines:
+            return None
+
+        # Bottom line: total amount and tax
+        total_amount = self._convert_dkk_to_ore(self.amount)
+        total_tax = sum(
+            self._convert_dkk_to_ore(l.price_total - l.price_subtotal)
+            for order in sale_orders
+            for l in order.order_line
+            if not l.display_type
+        )
+
+        return {
+            "orderLines": order_lines,
+            "bottomLine": {
+                "currency": self.currency_id.name or "DKK",
+                "tipAmount": 0,
+                "posId": re.sub(r"[^a-zA-Z0-9]", "", self.provider_id.sudo().company_id.name or "Odoo")[:10],
+            },
+        }
+
+    def _get_sale_orders(self):
+        """Return sale orders linked to this transaction, if any."""
+        self.ensure_one()
+        # payment.transaction links to sale.order via sale_order_ids (Odoo 17)
+        if hasattr(self, "sale_order_ids") and self.sale_order_ids:
+            return self.sale_order_ids
+        # Fallback: search by source document on invoices
+        invoices = self.invoice_ids
+        if invoices:
+            sale_orders = invoices.mapped("invoice_line_ids.sale_line_ids.order_id")
+            if sale_orders:
+                return sale_orders
+        return self.env["sale.order"].browse()
+
     def _mobilepay_retry_poll_status(self):
         """
-        Retry status polling if within timeout window.
-        Called by cron or automated action.
+        Retry status polling for draft/pending transactions within the 5-minute window.
+        Also polls authorized transactions to catch any missed webhooks.
+        Called by cron.
         """
         status_timeout_min = 5
 
         for tx in self:
-            if tx.provider_id.code != "mobilepay" or tx.state not in [
-                "draft",
-                "pending",
-            ]:
+            if tx.provider_id.code != "mobilepay":
                 continue
 
-            # Check if time elapsed < 5 minutes
-            time_diff = fields.Datetime.now() - tx.create_date
-            if time_diff.total_seconds() < (status_timeout_min * 60):
+            if tx.state in ["draft", "pending"]:
+                # Check if time elapsed < 5 minutes
+                time_diff = fields.Datetime.now() - tx.create_date
+                if time_diff.total_seconds() < (status_timeout_min * 60):
+                    tx._mobilepay_get_payment_status()
+
+            elif tx.state == "authorized":
+                # Poll authorized transactions to catch missed webhooks and
+                # keep the event log / amounts up to date.
                 tx._mobilepay_get_payment_status()
+
+    @api.model
+    def _mobilepay_monitor_capture_expiry(self):
+        """
+        Cron: warn about authorized MobilePay transactions that are approaching
+        the capture deadline (14 days for ePayment), and cancel those that have
+        already passed it so the customer's funds are released.
+
+        MobilePay ePayment reservations expire after 14 days.
+        We warn at 12 days and cancel at 14 days.
+        """
+        from datetime import timedelta
+
+        now = fields.Datetime.now()
+        warn_threshold = now - timedelta(days=12)
+        cancel_threshold = now - timedelta(days=14)
+
+        authorized_txs = self.search([
+            ("provider_id.code", "=", "mobilepay"),
+            ("state", "=", "authorized"),
+        ])
+
+        for tx in authorized_txs:
+            age = now - tx.create_date
+            if tx.create_date <= cancel_threshold:
+                # Reservation has expired — cancel it so funds are released
+                _logger.warning(
+                    "MobilePay: Transaction %s is %d days old and past capture deadline. Cancelling.",
+                    tx.reference, age.days,
+                )
+                try:
+                    tx._send_cancel_request()
+                    tx.message_post(
+                        body=_(
+                            "MobilePay payment reservation expired after %(days)d days "
+                            "and was automatically cancelled to release the customer's funds.",
+                            days=age.days,
+                        ),
+                        message_type="notification",
+                        subtype_xmlid="mail.mt_note",
+                    )
+                except Exception as e:
+                    _logger.error(
+                        "MobilePay: Failed to cancel expired transaction %s: %s",
+                        tx.reference, str(e),
+                    )
+            elif tx.create_date <= warn_threshold:
+                # Approaching deadline — post a warning note so someone acts
+                # Only warn once (check if we already posted a warning)
+                already_warned = any(
+                    "capture deadline" in (msg.body or "")
+                    for msg in tx.message_ids
+                )
+                if not already_warned:
+                    _logger.warning(
+                        "MobilePay: Transaction %s is %d days old and approaching capture deadline.",
+                        tx.reference, age.days,
+                    )
+                    tx.message_post(
+                        body=_(
+                            "⚠️ MobilePay payment %(ref)s has been authorized for %(days)d days "
+                            "and is approaching the capture deadline (14 days). "
+                            "Please capture or cancel this payment soon.",
+                            ref=tx.reference,
+                            days=age.days,
+                        ),
+                        message_type="notification",
+                        subtype_xmlid="mail.mt_note",
+                    )
+
+    @api.model
+    def _mobilepay_cancel_on_sale_order_cancel(self):
+        """
+        Cron: cancel MobilePay authorized transactions whose sale order has been
+        cancelled, so the customer's reserved funds are released promptly.
+        """
+        authorized_txs = self.search([
+            ("provider_id.code", "=", "mobilepay"),
+            ("state", "=", "authorized"),
+        ])
+
+        for tx in authorized_txs:
+            sale_orders = tx._get_sale_orders()
+            if not sale_orders:
+                continue
+            # If ALL linked sale orders are cancelled, void the authorization
+            if all(so.state == "cancel" for so in sale_orders):
+                _logger.info(
+                    "MobilePay: Sale order(s) %s cancelled — voiding authorization for %s",
+                    sale_orders.mapped("name"), tx.reference,
+                )
+                try:
+                    tx._send_cancel_request()
+                    tx.message_post(
+                        body=_(
+                            "MobilePay payment authorization automatically cancelled "
+                            "because the related sale order was cancelled.",
+                        ),
+                        message_type="notification",
+                        subtype_xmlid="mail.mt_note",
+                    )
+                except Exception as e:
+                    _logger.error(
+                        "MobilePay: Failed to cancel transaction %s after order cancel: %s",
+                        tx.reference, str(e),
+                    )
 
     def _send_refund_request(self, amount_to_refund=None):
         """

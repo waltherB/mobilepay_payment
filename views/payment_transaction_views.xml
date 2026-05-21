@@ -25,6 +25,16 @@
                         </group>
                     </group>
                 </xpath>
+                <!-- Action buttons for MobilePay transactions -->
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button name="action_fetch_mobilepay_event_log"
+                            type="object"
+                            string="Fetch Event Log"
+                            icon="fa-history"
+                            invisible="not show_mobilepay_fields"
+                            class="oe_stat_button"
+                            help="Fetch the full payment event history from MobilePay and add it to the chatter"/>
+                </xpath>
             </field>
         </record>
 

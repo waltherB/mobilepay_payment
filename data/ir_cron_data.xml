@@ -1,14 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <!-- Cron for MobilePay Transaction Status Polling -->
+        <!-- Cron 1: Poll draft/pending/authorized transactions for status updates -->
         <record id="ir_cron_mobilepay_status_poll" model="ir.cron">
             <field name="name">MobilePay: Poll Payment Status</field>
             <field name="model_id" ref="model_payment_transaction"/>
             <field name="state">code</field>
-            <field name="code">model.search([('provider_id.code', '=', 'mobilepay'), ('state', 'in', ['draft', 'pending'])])._mobilepay_retry_poll_status()</field>
+            <field name="code">model.search([('provider_id.code', '=', 'mobilepay'), ('state', 'in', ['draft', 'pending', 'authorized'])])._mobilepay_retry_poll_status()</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- Cron 2: Monitor authorized transactions approaching or past capture deadline -->
+        <record id="ir_cron_mobilepay_capture_expiry" model="ir.cron">
+            <field name="name">MobilePay: Monitor Capture Expiry</field>
+            <field name="model_id" ref="model_payment_transaction"/>
+            <field name="state">code</field>
+            <field name="code">model._mobilepay_monitor_capture_expiry()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">6</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- Cron 3: Cancel authorized payments whose sale order has been cancelled -->
+        <record id="ir_cron_mobilepay_cancel_on_order_cancel" model="ir.cron">
+            <field name="name">MobilePay: Cancel Authorized Payments for Cancelled Orders</field>
+            <field name="model_id" ref="model_payment_transaction"/>
+            <field name="state">code</field>
+            <field name="code">model._mobilepay_cancel_on_sale_order_cancel()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">15</field>
             <field name="interval_type">minutes</field>
             <field name="numbercall">-1</field>
             <field name="doall" eval="False"/>

@@ -26,6 +26,7 @@ Supports both Odoo Enterprise and Community editions.
         "website_sale",
         "stock",
         "sale_stock",
+        "sale",
     ],
     "data": [
         "security/ir.model.access.csv",

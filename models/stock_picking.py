@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from odoo import models
+from odoo import models, _
 
 _logger = logging.getLogger(__name__)
 
@@ -48,6 +48,19 @@ class StockPicking(models.Model):
                         )
                         tx.sudo()._send_capture_request()
                     except Exception as e:
+                        error_msg = str(e)
                         _logger.error(
-                            f"Failed to auto-capture transaction {tx.reference}: {str(e)}"
+                            f"Failed to auto-capture transaction {tx.reference}: {error_msg}"
+                        )
+                        # Post a message on the picking so the warehouse operator
+                        # sees the failure directly on the delivery order.
+                        picking.message_post(
+                            body=_(
+                                "⚠️ MobilePay auto-capture failed for transaction %(ref)s: %(error)s\n"
+                                "Please capture the payment manually or contact support.",
+                                ref=tx.reference,
+                                error=error_msg,
+                            ),
+                            message_type="notification",
+                            subtype_xmlid="mail.mt_note",
                         )
