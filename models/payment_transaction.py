@@ -352,18 +352,18 @@ class PaymentTransaction(models.Model):
             dict: Payment status data
         """
         self.ensure_one()
-        if self.provider_id.code != "mobilepay" or not self.mobilepay_payment_id:
+        if self.provider_id.code != "mobilepay" or not self.mobilepay_api_reference:
             return None
 
         try:
             api_client = self.env["mobilepay.api.client"]
             status_data = api_client.get_payment_status(
-                self.provider_id, self.mobilepay_payment_id
+                self.provider_id, self.mobilepay_api_reference
             )
 
             _logger.info(
                 "MobilePay status poll result for %s: %s",
-                self.mobilepay_payment_id,
+                self.mobilepay_api_reference,
                 json.dumps(status_data),
             )
 
@@ -413,12 +413,12 @@ class PaymentTransaction(models.Model):
         Only events not already logged are posted, so repeated calls are idempotent.
         """
         self.ensure_one()
-        if not self.mobilepay_payment_id:
+        if not self.mobilepay_api_reference:
             return
 
         api_client = self.env["mobilepay.api.client"]
         events = api_client.get_payment_events(
-            self.provider_id, self.mobilepay_payment_id
+            self.provider_id, self.mobilepay_api_reference
         )
 
         if not events or not isinstance(events, list):
@@ -476,8 +476,8 @@ class PaymentTransaction(models.Model):
         self.ensure_one()
         if self.provider_id.code != "mobilepay":
             raise UserError(_("This is not a MobilePay transaction."))
-        if not self.mobilepay_payment_id:
-            raise UserError(_("No MobilePay Payment ID found on this transaction."))
+        if not self.mobilepay_api_reference:
+            raise UserError(_("No MobilePay API Reference found on this transaction."))
 
         self._mobilepay_fetch_and_log_events()
 
@@ -592,7 +592,7 @@ class PaymentTransaction(models.Model):
             api_client = self.env["mobilepay.api.client"]
             api_client.capture_payment(
                 self.provider_id,
-                self.mobilepay_payment_id,
+                self.mobilepay_api_reference,
                 capture_data,
                 idempotency_key=str(uuid.uuid4()),
             )
@@ -865,8 +865,8 @@ class PaymentTransaction(models.Model):
         if self.state != "done":
             raise UserError(_("Only confirmed transactions can be refunded."))
 
-        if not self.mobilepay_payment_id:
-            raise UserError(_("Missing MobilePay payment ID for refund."))
+        if not self.mobilepay_api_reference:
+            raise UserError(_("Missing MobilePay API Reference for refund."))
 
         # Calculate refund amount
         refund_amount = amount_to_refund or self.captured_amount
@@ -896,7 +896,7 @@ class PaymentTransaction(models.Model):
             api_client = self.env["mobilepay.api.client"]
             response = api_client.refund_payment(
                 self.provider_id,
-                self.mobilepay_payment_id,
+                self.mobilepay_api_reference,
                 refund_data,
                 idempotency_key=str(uuid.uuid4()),
             )
@@ -935,14 +935,14 @@ class PaymentTransaction(models.Model):
         if self.provider_id.code != "mobilepay":
             return super()._send_cancel_request()
 
-        if not self.mobilepay_payment_id:
-            raise UserError(_("Missing MobilePay payment ID for cancellation."))
+        if not self.mobilepay_api_reference:
+            raise UserError(_("Missing MobilePay API Reference for cancellation."))
 
         try:
             api_client = self.env["mobilepay.api.client"]
             response = api_client.cancel_payment(
                 self.provider_id,
-                self.mobilepay_payment_id,
+                self.mobilepay_api_reference,
                 idempotency_key=str(uuid.uuid4()),
             )
 
