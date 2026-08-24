@@ -157,12 +157,13 @@ class PaymentTransaction(models.Model):
     def _format_phone_number_v3(self, phone_number):
         """
         Format phone number for MobilePay V3 API (digits only, 9-15 chars).
+        Supports Denmark (+45), Norway (+47), and Finland (+358).
 
         Args:
             phone_number (str): Phone number in various formats
 
         Returns:
-            str: Phone number in digits only (45XXXXXXXX) or None if invalid
+            str: Phone number in digits only format or None if invalid
         """
         if not phone_number:
             return None
@@ -170,22 +171,39 @@ class PaymentTransaction(models.Model):
         # Remove all non-digit characters
         digits_only = re.sub(r"\D", "", phone_number)
 
-        # Handle Danish phone numbers specifically
-        if len(digits_only) == 8:
-            # Add Danish country code (digits only)
-            return f"45{digits_only}"
-        elif digits_only.startswith("0045") and len(digits_only) == 12:
-            # Remove leading 00
-            return digits_only[2:]
-        elif digits_only.startswith("45") and len(digits_only) == 10:
-            # Already has country code
-            return digits_only
+        # Detect target country prefix from transaction state
+        # Priority: 1. Partner country, 2. Company country, 3. Default to Denmark (DK / 45)
+        country_code = "DK"
+        if self.partner_country_id:
+            country_code = self.partner_country_id.code
+        elif self.company_id and self.company_id.country_id:
+            country_code = self.company_id.country_id.code
 
-        # Validate digits only (9-15 digits) as per API regex ^\d{9,15}$
+        # If it starts with 00, strip the 00
+        if digits_only.startswith("00"):
+            digits_only = digits_only[2:]
+
+        # Handle formatting based on country
+        if country_code == "DK":
+            if len(digits_only) == 8:
+                return f"45{digits_only}"
+            elif digits_only.startswith("45") and len(digits_only) == 10:
+                return digits_only
+        elif country_code == "NO":
+            if len(digits_only) == 8:
+                return f"47{digits_only}"
+            elif digits_only.startswith("47") and len(digits_only) == 10:
+                return digits_only
+        elif country_code == "FI":
+            # Finnish local numbers usually start with 0
+            if digits_only.startswith("0") and 5 <= len(digits_only) <= 11:
+                return f"358{digits_only[1:]}"
+            elif digits_only.startswith("358") and 8 <= len(digits_only) <= 13:
+                return digits_only
+
+        # Fallback generic validation (9-15 digits) as per API regex ^\d{9,15}$
         if 9 <= len(digits_only) <= 15:
             return digits_only
-
-        return None
 
         return None
 
@@ -215,7 +233,7 @@ class PaymentTransaction(models.Model):
         if not self.mobilepay_idempotency_key:
             self.mobilepay_idempotency_key = self._generate_idempotency_key(api_reference)
 
-        # Convert amount to øre
+        # Convert amount to minor units (øre/cents)
         amount_ore = self._convert_dkk_to_ore(self.amount)
 
         # Format customer phone number
@@ -240,7 +258,7 @@ class PaymentTransaction(models.Model):
 
         payment_data = {
             "amount": {
-                "currency": "DKK",
+                "currency": self.currency_id.name or "DKK",
                 "value": amount_ore,
             },
             "reference": api_reference,
