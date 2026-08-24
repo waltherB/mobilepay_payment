@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--
+            Extend the pos.payment.method backend form view with a
+            MobilePay Terminal settings group, visible only when the
+            terminal type is set to 'mobilepay'.
+        -->
+        <record id="pos_payment_method_form_mobilepay" model="ir.ui.view">
+            <field name="name">pos.payment.method.form.mobilepay</field>
+            <field name="model">pos.payment.method</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_payment_method_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='use_payment_terminal']" position="after">
+                    <group
+                        string="MobilePay Terminal Settings"
+                        name="mobilepay_pos_settings"
+                        invisible="use_payment_terminal != 'mobilepay'">
+                        <field
+                            name="mobilepay_pos_provider_id"
+                            options="{'no_create': True}"
+                            help="Leave empty to auto-select the first active MobilePay provider."/>
+                        <field
+                            name="mobilepay_pos_default_mode"
+                            help="Controls whether the operator is prompted to choose push or QR on each payment."/>
+                        <field
+                            name="mobilepay_pos_timeout"
+                            help="Seconds before the POS automatically cancels a pending payment (10–300)."/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

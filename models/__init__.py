@@ -7,3 +7,4 @@ from . import mobilepay_api_client
 from . import stock_picking
 from . import sale_order
 from . import mobilepay_settlement
+from . import pos_payment_method

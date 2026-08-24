@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- ================================================================
+         MobilePayModeDialog
+         Operator chooses between Phone Push and QR Code.
+    ================================================================ -->
+    <t t-name="mobilepay_payment.MobilePayModeDialog">
+        <Dialog title="'MobilePay — Choose Payment Mode'">
+            <div class="o_mobilepay_mode_dialog d-flex flex-column align-items-center gap-3 p-4">
+
+                <p class="text-muted text-center mb-3">
+                    How should the customer pay?
+                </p>
+
+                <!-- Phone Push -->
+                <button
+                    class="btn btn-primary btn-lg w-100 d-flex align-items-center gap-3"
+                    t-on-click="selectPhonePush">
+                    <i class="fa fa-mobile fa-2x"/>
+                    <div class="text-start">
+                        <div class="fw-bold">Send Push to Phone</div>
+                        <small class="text-white-50">Customer receives a notification in their MobilePay app</small>
+                    </div>
+                </button>
+
+                <!-- QR Code -->
+                <button
+                    class="btn btn-secondary btn-lg w-100 d-flex align-items-center gap-3"
+                    t-on-click="selectQr">
+                    <i class="fa fa-qrcode fa-2x"/>
+                    <div class="text-start">
+                        <div class="fw-bold">Show QR Code</div>
+                        <small class="text-muted">Customer scans a QR code on screen</small>
+                    </div>
+                </button>
+
+            </div>
+        </Dialog>
+    </t>
+
+    <!-- ================================================================
+         MobilePayPhoneDialog
+         Capture customer phone number before push payment.
+    ================================================================ -->
+    <t t-name="mobilepay_payment.MobilePayPhoneDialog">
+        <Dialog title="'MobilePay — Enter Phone Number'">
+            <div class="o_mobilepay_phone_dialog d-flex flex-column align-items-center gap-3 p-4">
+
+                <!-- Phone display -->
+                <div class="o_mobilepay_phone_display w-100 text-center">
+                    <span class="fs-2 fw-bold font-monospace" t-esc="state.phone || '—'"/>
+                </div>
+
+                <!-- Numeric keypad -->
+                <div class="o_mobilepay_keypad d-grid gap-2" style="grid-template-columns: repeat(3, 1fr); width: 280px;">
+                    <t t-foreach="['1','2','3','4','5','6','7','8','9','+','0','⌫']" t-as="digit" t-key="digit">
+                        <button
+                            class="btn btn-outline-secondary btn-lg fs-4"
+                            t-on-click="() => digit === '⌫' ? deleteLast() : appendDigit(digit)"
+                            t-esc="digit"/>
+                    </t>
+                </div>
+
+                <!-- Confirm / Cancel -->
+                <div class="d-flex gap-2 w-100 mt-2">
+                    <button
+                        class="btn btn-primary flex-fill"
+                        t-att-disabled="!state.phone"
+                        t-on-click="confirm">
+                        Send Push
+                    </button>
+                    <button class="btn btn-outline-secondary" t-on-click="props.close">
+                        Cancel
+                    </button>
+                </div>
+
+            </div>
+        </Dialog>
+    </t>
+
+    <!-- ================================================================
+         MobilePayQrDisplay
+         Full-screen QR overlay with countdown, status, and fallback.
+    ================================================================ -->
+    <t t-name="mobilepay_payment.MobilePayQrDisplay">
+        <Dialog
+            title="'MobilePay — Scan to Pay'"
+            size="'lg'">
+            <div class="o_mobilepay_qr_display d-flex flex-column align-items-center gap-3 p-3">
+
+                <!-- QR Image -->
+                <div class="o_mobilepay_qr_image border rounded p-2 bg-white">
+                    <img
+                        t-att-src="qrSrc"
+                        alt="MobilePay QR Code"
+                        style="width: 260px; height: 260px; object-fit: contain;"/>
+                </div>
+
+                <!-- Status text -->
+                <p class="text-center text-muted mb-0">
+                    <t t-esc="state.statusText"/>
+                </p>
+
+                <!-- Countdown -->
+                <div
+                    class="o_mobilepay_countdown badge fs-6"
+                    t-attf-class="badge fs-6 {{ remaining > 15 ? 'bg-secondary' : remaining > 5 ? 'bg-warning text-dark' : 'bg-danger' }}">
+                    <i class="fa fa-clock-o me-1"/>
+                    <t t-esc="remaining"/>s
+                </div>
+
+                <!-- Action buttons -->
+                <div class="d-flex gap-2 flex-wrap justify-content-center mt-2">
+                    <button
+                        class="btn btn-outline-primary"
+                        t-on-click="switchToPhone">
+                        <i class="fa fa-mobile me-1"/>
+                        Switch to Phone Push
+                    </button>
+                    <button
+                        class="btn btn-outline-danger"
+                        t-on-click="cancel">
+                        <i class="fa fa-times me-1"/>
+                        Cancel Payment
+                    </button>
+                </div>
+
+            </div>
+        </Dialog>
+    </t>
+
+</templates>

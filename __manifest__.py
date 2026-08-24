@@ -27,6 +27,7 @@ Supports both Odoo Enterprise and Community editions.
         "stock",
         "sale_stock",
         "sale",
+        "point_of_sale",
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -37,10 +38,15 @@ Supports both Odoo Enterprise and Community editions.
         "views/payment_provider_views.xml",
         "views/payment_transaction_views.xml",
         "views/mobilepay_settlement_views.xml",
+        "views/pos_payment_method_views.xml",
     ],
     "assets": {
         "web.assets_frontend": [
             "mobilepay_payment/static/src/js/payment_form.js",
+        ],
+        "point_of_sale._assets_pos": [
+            "mobilepay_payment/static/src/js/payment_mobilepay.js",
+            "mobilepay_payment/static/src/xml/MobilePayPaymentScreen.xml",
         ],
     },
     "installable": True,
