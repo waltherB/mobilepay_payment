@@ -322,3 +322,64 @@ class MobilePayApiClient(models.AbstractModel):
             return True
         else:
             self._handle_response(response, expected_status=200)
+
+    def get_settlement_reports(self, provider, date_from, date_to):
+        """
+        Fetch settlement ledger entries from Vipps/MobilePay Report API.
+        
+        Args:
+            provider: payment.provider record
+            date_from (date/datetime): Start date
+            date_to (date/datetime): End date
+            
+        Returns:
+            list: List of raw ledger entries
+        """
+        # 1. Fetch ledgers to find the ledger ID for the provider's Merchant Serial Number (MSN)
+        ledgers_endpoint = "/settlement/v1/ledgers"
+        try:
+            ledgers_response = self._make_request(provider, "GET", ledgers_endpoint)
+            ledgers = self._handle_response(ledgers_response)
+        except Exception as e:
+            _logger.error("Failed to fetch MobilePay ledgers: %s", str(e))
+            return []
+
+        # Find the MSN of the provider
+        provider_msn = provider.mobilepay_merchant_serial or (
+            provider.mobilepay_test_merchant_serial
+            if provider.state != "enabled"
+            else provider.mobilepay_prod_merchant_serial
+        )
+        provider_msn = self._sanitize_header(provider_msn)
+
+        ledger_id = None
+        for ledger in ledgers:
+            # Match by salesUnitId (which is the Merchant Serial Number / MSN)
+            if self._sanitize_header(ledger.get("salesUnitId")) == provider_msn:
+                ledger_id = ledger.get("ledgerId")
+                break
+
+        if not ledger_id:
+            _logger.warning("No MobilePay ledger found matching Merchant Serial Number (MSN): %s", provider_msn)
+            return []
+
+        # 2. Fetch entries for the matched ledger
+        entries_endpoint = f"/settlement/v1/ledgers/{ledger_id}/entries"
+        params = {
+            "from": date_from.strftime("%Y-%m-%dT00:00:00Z"),
+            "to": date_to.strftime("%Y-%m-%dT23:59:59Z"),
+        }
+
+        try:
+            entries_response = self._make_request(provider, "GET", entries_endpoint, params=params)
+            entries_data = self._handle_response(entries_response)
+            
+            # The API returns a list of entries or an object containing an entries list
+            if isinstance(entries_data, list):
+                return entries_data
+            elif isinstance(entries_data, dict):
+                return entries_data.get("entries") or []
+            return []
+        except Exception as e:
+            _logger.error("Failed to fetch MobilePay ledger entries for ledger %s: %s", ledger_id, str(e))
+            return []

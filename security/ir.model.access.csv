@@ -1,3 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_mobilepay_auth_service_public,mobilepay.auth.service.public,model_mobilepay_auth_service,,1,0,0,0
 access_mobilepay_api_client_public,mobilepay.api.client.public,model_mobilepay_api_client,,1,0,0,0
+access_mobilepay_settlement_readonly,mobilepay.settlement.readonly,model_mobilepay_settlement,account.group_account_readonly,1,0,0,0
+access_mobilepay_settlement_invoice,mobilepay.settlement.invoice,model_mobilepay_settlement,account.group_account_invoice,1,1,1,0
+access_mobilepay_settlement_manager,mobilepay.settlement.manager,model_mobilepay_settlement,account.group_account_manager,1,1,1,1

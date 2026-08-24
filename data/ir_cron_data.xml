@@ -42,5 +42,19 @@
             <field name="doall" eval="False"/>
             <field name="active" eval="True"/>
         </record>
+
+        <!-- Cron 4: Fetch settlements and reconcile transaction fees daily -->
+        <record id="ir_cron_mobilepay_reconcile_reports" model="ir.cron">
+            <field name="name">MobilePay: Fetch Settlements and Reconcile Fees (CE)</field>
+            <field name="model_id" ref="model_payment_provider"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_mobilepay_sync_settlements()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="active" eval="True"/>
+        </record>
     </data>
 </odoo>

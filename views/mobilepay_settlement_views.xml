@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- MobilePay Settlement Tree View -->
+        <record id="mobilepay_settlement_view_tree" model="ir.ui.view">
+            <field name="name">mobilepay.settlement.tree</field>
+            <field name="model">mobilepay.settlement</field>
+            <field name="arch" type="xml">
+                <tree string="MobilePay Settlements" create="false" edit="false">
+                    <field name="payout_id"/>
+                    <field name="settlement_date"/>
+                    <field name="gross_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="fee_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="net_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="currency_id" column_invisible="True"/>
+                    <field name="journal_entry_id"/>
+                    <field name="state" 
+                           widget="badge" 
+                           decoration-success="state == 'reconciled'" 
+                           decoration-warning="state == 'draft'" 
+                           decoration-danger="state == 'error'"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- MobilePay Settlement Form View -->
+        <record id="mobilepay_settlement_view_form" model="ir.ui.view">
+            <field name="name">mobilepay.settlement.form</field>
+            <field name="model">mobilepay.settlement</field>
+            <field name="arch" type="xml">
+                <form string="MobilePay Settlement" create="false" edit="false">
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,reconciled"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="payout_id" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group name="settlement_details" string="Settlement Info">
+                                <field name="settlement_date" readonly="1"/>
+                                <field name="journal_entry_id" readonly="1"/>
+                                <field name="currency_id" groups="base.group_multi_currency" readonly="1"/>
+                            </group>
+                            <group name="financials" string="Amounts">
+                                <field name="gross_amount" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="fee_amount" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="net_amount" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Diagnostics / Log" name="diagnostics" invisible="not note">
+                                <field name="note" readonly="1" placeholder="API sync traces or traceback details..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- MobilePay Settlement Action -->
+        <record id="action_mobilepay_settlement" model="ir.actions.act_window">
+            <field name="name">MobilePay Settlements</field>
+            <field name="res_model">mobilepay.settlement</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No MobilePay settlements found
+                </p>
+                <p>
+                    Settlement reports are periodically fetched from the MobilePay API and automatically reconciled.
+                </p>
+            </field>
+        </record>
+
+        <!-- MobilePay Settlements Menu Item -->
+        <menuitem id="menu_mobilepay_settlements"
+                  name="MobilePay Settlements"
+                  parent="account.menu_finance"
+                  action="action_mobilepay_settlement"
+                  sequence="56"
+                  groups="account.group_account_readonly,account.group_account_invoice"/>
+    </data>
+</odoo>

@@ -36,6 +36,7 @@ Supports both Odoo Enterprise and Community editions.
         "data/ir_cron_data.xml",
         "views/payment_provider_views.xml",
         "views/payment_transaction_views.xml",
+        "views/mobilepay_settlement_views.xml",
     ],
     "assets": {
         "web.assets_frontend": [

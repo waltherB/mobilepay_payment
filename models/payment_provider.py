@@ -47,6 +47,33 @@ class PaymentProvider(models.Model):
         help="Diagnostic version of the MobilePay integration logic.",
     )
 
+    # Settlement & Fees Reconciliation Fields (CE Compatible)
+    mobilepay_fee_account_id = fields.Many2one(
+        "account.account",
+        string="MobilePay Fee Account",
+        help="The expense account where transaction fees will be recorded.",
+    )
+    mobilepay_clearing_account_id = fields.Many2one(
+        "account.account",
+        string="MobilePay Clearing Account",
+        help="The transit/clearing asset account where gross customer payments are captured in real-time.",
+    )
+    mobilepay_journal_id = fields.Many2one(
+        "account.journal",
+        string="MobilePay Journal",
+        help="The Misc/Bank journal where payout entries and fee write-offs will be posted.",
+    )
+    mobilepay_auto_post_settlements = fields.Boolean(
+        string="Auto-Post Settlements",
+        default=True,
+        help="If enabled, payout journal entries will post and reconcile automatically. Otherwise, they will save as Draft.",
+    )
+    mobilepay_fee_tax_id = fields.Many2one(
+        "account.tax",
+        string="MobilePay Fee Tax",
+        help="Optional tax/VAT code to apply to the transaction fee expense line.",
+    )
+
     @api.depends("code")
     def _compute_mobilepay_logic_version(self):
         for provider in self:
@@ -881,3 +908,251 @@ class PaymentProvider(models.Model):
                     "type": "info",
                 },
             }
+
+    @api.model
+    def _cron_mobilepay_sync_settlements(self):
+        """Cron interface: fetch and reconcile payouts for all configured MobilePay providers."""
+        providers = self.search([("code", "=", "mobilepay"), ("state", "!=", "disabled")])
+        for provider in providers:
+            try:
+                provider._mobilepay_sync_settlements()
+            except Exception as e:
+                _logger.error(
+                    "Error executing MobilePay settlement sync for provider %s: %s",
+                    provider.name,
+                    str(e),
+                )
+
+    def _mobilepay_sync_settlements(self):
+        """Fetch daily payout logs and generate accounting entries for Odoo CE (Hybrid Flow)."""
+        self.ensure_one()
+        if self.code != "mobilepay":
+            return
+
+        if not (self.mobilepay_fee_account_id and self.mobilepay_clearing_account_id and self.mobilepay_journal_id):
+            _logger.warning(
+                "MobilePay settlement sync skipped for provider %s: "
+                "Reconciliation accounting configurations are missing (Fee Account, Clearing Account, or Journal).",
+                self.name,
+            )
+            return
+
+        # Fetch payouts for the last 14 days to capture any delayed report updates
+        from datetime import date, timedelta
+        date_to = date.today()
+        date_from = date_to - timedelta(days=14)
+
+        api_client = self.env["mobilepay.api.client"]
+        entries = api_client.get_settlement_reports(self, date_from, date_to)
+
+        if not entries:
+            _logger.info("No settlement entries found for MobilePay provider %s.", self.name)
+            return
+
+        # Group ledger entries by Payout ID
+        payouts_data = {}
+        for entry in entries:
+            payout_id = entry.get("payoutId")
+            if not payout_id:
+                continue
+
+            if payout_id not in payouts_data:
+                payouts_data[payout_id] = {
+                    "payout_id": payout_id,
+                    "date": fields.Date.from_string(entry.get("date") or entry.get("bookingDate") or date.today().isoformat()),
+                    "currency_name": entry.get("currency") or "DKK",
+                    "captures": [],
+                    "refunds": [],
+                    "fees": [],
+                    "net_payout": 0.0,
+                    "gross_payments": 0.0,
+                    "gross_refunds": 0.0,
+                    "total_fees": 0.0,
+                }
+
+            entry_type = (entry.get("entryType") or "").lower()
+            amount_val = float(entry.get("amount") or 0.0) / 100.0
+
+            if entry_type in ["payment", "capture"]:
+                payouts_data[payout_id]["captures"].append({
+                    "psp_reference": entry.get("pspReference"),
+                    "amount": amount_val,
+                })
+                payouts_data[payout_id]["gross_payments"] += amount_val
+            elif entry_type == "refund":
+                payouts_data[payout_id]["refunds"].append({
+                    "psp_reference": entry.get("pspReference"),
+                    "amount": abs(amount_val),
+                })
+                payouts_data[payout_id]["gross_refunds"] += abs(amount_val)
+            elif entry_type in ["commission", "fee", "merchant_fee"]:
+                payouts_data[payout_id]["fees"].append({
+                    "psp_reference": entry.get("pspReference"),
+                    "amount": abs(amount_val),
+                })
+                payouts_data[payout_id]["total_fees"] += abs(amount_val)
+            elif entry_type in ["payout", "payout-scheduled", "transfer"]:
+                payouts_data[payout_id]["net_payout"] = abs(amount_val)
+
+        for payout_id, data in payouts_data.items():
+            existing_settlement = self.env["mobilepay.settlement"].search(
+                [("payout_id", "=", payout_id)], limit=1
+            )
+            if existing_settlement and existing_settlement.state == "reconciled":
+                continue
+
+            if not data["net_payout"]:
+                data["net_payout"] = data["gross_payments"] - data["gross_refunds"] - data["total_fees"]
+
+            currency = self.env["res.currency"].search([("name", "=", data["currency_name"])], limit=1)
+            if not currency:
+                currency = self.company_id.currency_id
+
+            settlement_vals = {
+                "payout_id": payout_id,
+                "settlement_date": data["date"],
+                "gross_amount": data["gross_payments"] - data["gross_refunds"],
+                "fee_amount": data["total_fees"],
+                "net_amount": data["net_payout"],
+                "currency_id": currency.id,
+            }
+
+            if not existing_settlement:
+                settlement = self.env["mobilepay.settlement"].create(settlement_vals)
+            else:
+                settlement = existing_settlement
+                settlement.write(settlement_vals)
+
+            try:
+                move_vals = self._mobilepay_prepare_settlement_move(settlement, data)
+                move = self.env["account.move"].create(move_vals)
+                settlement.write({"journal_entry_id": move.id})
+
+                if self.mobilepay_auto_post_settlements:
+                    move.action_post()
+                    settlement.write({"state": "reconciled"})
+                    self._mobilepay_reconcile_clearing_lines(move, data)
+                else:
+                    settlement.write({"state": "draft"})
+
+            except Exception as e:
+                _logger.error(
+                    "Failed to process MobilePay payout settlement %s: %s",
+                    payout_id,
+                    str(e),
+                )
+                settlement.write(
+                    {
+                        "state": "error",
+                        "note": f"Error: {str(e)}",
+                    }
+                )
+
+    def _mobilepay_prepare_settlement_move(self, settlement, data):
+        """Prepare values dict for the settlement Journal Entry (account.move)."""
+        self.ensure_one()
+        journal = self.mobilepay_journal_id
+        description = _("MobilePay Payout Settlement %s") % settlement.payout_id
+        line_ids = []
+        
+        bank_account = journal.default_account_id
+        if not bank_account:
+            raise UserError(
+                _("The selected MobilePay Journal (%s) does not have a default account configured.")
+                % journal.name
+            )
+
+        line_ids.append((0, 0, {
+            "name": description + _(" (Net Payout)"),
+            "account_id": bank_account.id,
+            "debit": settlement.net_amount,
+            "credit": 0.0,
+            "currency_id": settlement.currency_id.id,
+        }))
+        
+        fee_vals = {
+            "name": description + _(" (Merchant Fees)"),
+            "account_id": self.mobilepay_fee_account_id.id,
+            "debit": settlement.fee_amount,
+            "credit": 0.0,
+            "currency_id": settlement.currency_id.id,
+        }
+        if self.mobilepay_fee_tax_id:
+            fee_vals["tax_ids"] = [(6, 0, [self.mobilepay_fee_tax_id.id])]
+        
+        line_ids.append((0, 0, fee_vals))
+        
+        if data["gross_payments"]:
+            line_ids.append((0, 0, {
+                "name": description + _(" (Gross Receipts Clearing)"),
+                "account_id": self.mobilepay_clearing_account_id.id,
+                "debit": 0.0,
+                "credit": data["gross_payments"],
+                "currency_id": settlement.currency_id.id,
+            }))
+            
+        if data["gross_refunds"]:
+            line_ids.append((0, 0, {
+                "name": description + _(" (Gross Refunds Clearing)"),
+                "account_id": self.mobilepay_clearing_account_id.id,
+                "debit": data["gross_refunds"],
+                "credit": 0.0,
+                "currency_id": settlement.currency_id.id,
+            }))
+            
+        return {
+            "journal_id": journal.id,
+            "date": settlement.settlement_date,
+            "ref": settlement.payout_id,
+            "move_type": "entry",
+            "line_ids": line_ids,
+        }
+
+    def _mobilepay_reconcile_clearing_lines(self, move, data):
+        """Find and reconcile outstanding clearing account lines matching this payout's transactions."""
+        self.ensure_one()
+        psp_refs = [c["psp_reference"] for c in data["captures"] if c["psp_reference"]]
+        refund_refs = [r["psp_reference"] for r in data["refunds"] if r["psp_reference"]]
+        all_api_refs = psp_refs + refund_refs
+
+        if not all_api_refs:
+            return
+
+        transactions = self.env["payment.transaction"].search([
+            ("mobilepay_payment_id", "in", all_api_refs)
+        ])
+
+        clearing_lines = self.env["account.move.line"]
+
+        # 1. Match standard payments linked via account.payment
+        if transactions:
+            payment_moves = transactions.payment_id.move_id
+            if payment_moves:
+                clearing_lines |= payment_moves.line_ids.filtered(
+                    lambda l: l.account_id == self.mobilepay_clearing_account_id and not l.reconciled
+                )
+
+        # 2. Match by reference strings (for POS/web orders or fallback)
+        references = transactions.mapped("reference")
+        if references:
+            additional_lines = self.env["account.move.line"].search([
+                ("account_id", "=", self.mobilepay_clearing_account_id.id),
+                ("reconciled", "=", False),
+                "|",
+                ("ref", "in", references),
+                ("name", "in", references),
+            ])
+            clearing_lines |= additional_lines
+
+        # 3. Get the clearing lines of our new settlement move
+        settlement_clearing_lines = move.line_ids.filtered(
+            lambda l: l.account_id == self.mobilepay_clearing_account_id and not l.reconciled
+        )
+
+        # Reconcile everything together
+        lines_to_reconcile = clearing_lines | settlement_clearing_lines
+        if len(lines_to_reconcile) > 1:
+            try:
+                lines_to_reconcile.reconcile()
+            except Exception as e:
+                _logger.warning("MobilePay: Automatic reconciliation failed for payout %s: %s", move.ref, str(e))
