@@ -43,6 +43,27 @@ class TestPaymentInitiation(TransactionCase):
             'partner_id': self.partner.id,
         })
 
+    def test_provider_reference_is_populated_from_mobilepay_response(self):
+        """MobilePay responses should populate the standard provider_reference field."""
+        transaction = self._create_test_transaction(reference='TEST-PROVIDER-REF')
+
+        def mock_create_payment(provider, payment_data, idempotency_key=None):
+            return {
+                'paymentId': 'test_payment_id_123',
+                'reference': 'MOBILEPAY-REF-456',
+            }
+
+        with patch.object(
+            self.env['mobilepay.api.client'],
+            'create_payment',
+            side_effect=mock_create_payment,
+        ):
+            with patch.object(self.provider, 'get_base_url', return_value='https://example.com'):
+                transaction._send_payment_request()
+
+        self.assertEqual(transaction.provider_reference, 'MOBILEPAY-REF-456')
+        self.assertEqual(transaction.mobilepay_payment_id, 'test_payment_id_123')
+
     @given(
         amount=st.floats(
             min_value=0.01,

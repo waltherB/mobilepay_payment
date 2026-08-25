@@ -326,6 +326,15 @@ class PaymentTransaction(models.Model):
 
             self.mobilepay_api_reference = response_data.get("reference")
 
+            # Set the standard Odoo provider reference field used by payment views
+            # and accounting flows. Prefer the MobilePay API reference, then the
+            # payment ID as a fallback.
+            self.provider_reference = (
+                self.mobilepay_api_reference
+                or response_data.get("paymentId")
+                or api_reference
+            )
+
             # Store MobilePay payment info
             # In Merchant Test (MT) or some V3 environments, paymentId might be missing from body.
             # Priority: 1. paymentId (if body has it) 2. reference (for MT environment polling)
@@ -334,7 +343,7 @@ class PaymentTransaction(models.Model):
             )
 
             _logger.info(
-                f"MobilePay Initiation for {self.reference}: Stored ID {self.mobilepay_payment_id}"
+                f"MobilePay Initiation for {self.reference}: Stored ID {self.mobilepay_payment_id}, provider ref {self.provider_reference}"
             )
             self.authorized_amount = self.amount
 

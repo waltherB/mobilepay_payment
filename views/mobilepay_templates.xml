@@ -14,7 +14,7 @@
                    t-attf-id="mobilepay_phone_#{provider_id}" 
                    class="form-control" 
                    placeholder="+45 12 34 56 78"
-                   t-att-value="request.env.user.partner_id.phone or request.env.user.partner_id.mobile"/>
+                   t-att-value="((request.website.sale_get_order() and (request.website.sale_get_order().partner_id.phone or request.website.sale_get_order().partner_id.mobile)) or (request.env.user.partner_id.phone or request.env.user.partner_id.mobile))"/>
             <small class="form-text text-muted">Enter your MobilePay phone number.</small>
         </div>
     </template>

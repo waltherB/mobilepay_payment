@@ -59,9 +59,13 @@ paymentForm.include({
 
         try {
             const phoneInput = document.getElementById(`mobilepay_phone_${paymentOptionId}`);
-            if (phoneInput && phoneInput.value) {
-                context['mobilepay_phone'] = phoneInput.value;
-                console.log("MobilePay: Phone added to context", phoneInput.value);
+            if (phoneInput) {
+                const value = phoneInput.value || phoneInput.getAttribute('value') || '';
+                if (value) {
+                    phoneInput.value = value;
+                    context['mobilepay_phone'] = value;
+                    console.log("MobilePay: Phone added to context", value);
+                }
             }
         } catch (err) {
             console.error("MobilePay: Error in _prepareTransactionContext logic", err);
