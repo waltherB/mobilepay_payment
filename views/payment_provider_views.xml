@@ -92,9 +92,12 @@
                                    help="Enter the number of hours to wait before automatically capturing the payment when Automatic Capture after Delay is selected."/>
                         </group>
                         <group string="Settlement &amp; Fees Reconciliation" name="settlement_reconciliation">
-                            <field name="mobilepay_journal_id" required="code == 'mobilepay'"/>
-                            <field name="mobilepay_clearing_account_id" required="code == 'mobilepay'"/>
-                            <field name="mobilepay_fee_account_id" required="code == 'mobilepay'"/>
+                            <field name="mobilepay_journal_id"
+                                   attrs="{'required': [('code', '=', 'mobilepay')]}"/>
+                            <field name="mobilepay_clearing_account_id"
+                                   attrs="{'required': [('code', '=', 'mobilepay')]}"/>
+                            <field name="mobilepay_fee_account_id"
+                                   attrs="{'required': [('code', '=', 'mobilepay')]}"/>
                             <field name="mobilepay_fee_tax_id"/>
                             <field name="mobilepay_auto_post_settlements"/>
                         </group>
