@@ -168,6 +168,62 @@ class PaymentProvider(models.Model):
         for provider in self:
             provider.show_mobilepay_fields = provider.code == "mobilepay"
 
+    def _ensure_mobilepay_payment_method_line(self):
+        """Ensure the selected MobilePay journal has a payment method line.
+
+        Odoo 17 requires a valid account payment method line when finalizing a
+        payment into an account.payment record. Without this, the cron that
+        post-processes the transaction raises
+        "Please define a payment method line on your payment."""
+        self.ensure_one()
+        if self.code != "mobilepay" or not self.mobilepay_journal_id:
+            return
+
+        method = self.env["account.payment.method"].search(
+            [("code", "=", "mobilepay")], limit=1
+        )
+        if not method:
+            method = self.env["account.payment.method"].create(
+                {
+                    "name": "MobilePay",
+                    "code": "mobilepay",
+                    "payment_type": "inbound",
+                }
+            )
+
+        line = self.env["account.payment.method.line"].search(
+            [
+                ("journal_id", "=", self.mobilepay_journal_id.id),
+                ("payment_method_id", "=", method.id),
+            ],
+            limit=1,
+        )
+        if not line:
+            self.env["account.payment.method.line"].create(
+                {
+                    "name": "MobilePay",
+                    "journal_id": self.mobilepay_journal_id.id,
+                    "payment_method_id": method.id,
+                }
+            )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for record in records:
+            if record.code == "mobilepay":
+                record._ensure_mobilepay_payment_method_line()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if self.filtered(lambda p: p.code == "mobilepay") and (
+            "mobilepay_journal_id" in vals or "code" in vals
+        ):
+            for record in self.filtered(lambda p: p.code == "mobilepay"):
+                record._ensure_mobilepay_payment_method_line()
+        return res
+
     @api.depends("capture_manually", "capture_on_delivery")
     def _compute_capture_mode(self):
         for provider in self:
