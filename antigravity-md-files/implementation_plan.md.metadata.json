@@ -1,0 +1,6 @@
+{
+  "summary": "Updated implementation plan detailing the hybrid flow (real-time gross clearing paired with cron-based fee reconciliation).",
+  "updatedAt": "2026-08-24T10:54:41.963304Z",
+  "requestFeedback": true,
+  "userFacing": true
+}
