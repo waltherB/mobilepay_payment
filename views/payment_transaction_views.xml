@@ -12,42 +12,23 @@
                     <field name="show_mobilepay_fields" invisible="1"/>
 
                     <!--
-                        Two-column group for amounts + status.
-                        These are short values so nested <group> works fine.
+                        Single flat group — no nested groups.
+                        In Odoo 17, nested <group> each take 50% width causing
+                        overlap. A single <group> renders a clean two-column
+                        label/value table at full sheet width.
                     -->
                     <group name="mobilepay_details"
                            string="MobilePay Details"
                            invisible="not show_mobilepay_fields">
-                        <group name="mobilepay_amounts" string="Amounts">
-                            <field name="authorized_amount"/>
-                            <field name="captured_amount"/>
-                            <field name="refunded_amount"/>
-                            <field name="capture_eligible"/>
-                        </group>
-                        <group name="mobilepay_status_group" string="Status">
-                            <field name="mobilepay_status"/>
-                            <field name="last_status_poll"/>
-                        </group>
+                        <field name="authorized_amount"/>
+                        <field name="mobilepay_status"/>
+                        <field name="captured_amount"/>
+                        <field name="last_status_poll"/>
+                        <field name="refunded_amount"/>
+                        <field name="capture_eligible"/>
+                        <field name="mobilepay_payment_id"/>
+                        <field name="mobilepay_idempotency_key"/>
                     </group>
-                </xpath>
-
-                <!--
-                    Inject a notebook page for the long ID / key values.
-                    A notebook page gives each field the full sheet width,
-                    guaranteed to never wrap character-by-character.
-                    We insert it before any existing notebook so it appears first.
-                -->
-                <xpath expr="//notebook" position="before">
-                    <notebook invisible="not show_mobilepay_fields">
-                        <page string="MobilePay IDs" name="mobilepay_ids">
-                            <group>
-                                <field name="mobilepay_payment_id"
-                                       readonly="1"/>
-                                <field name="mobilepay_idempotency_key"
-                                       readonly="1"/>
-                            </group>
-                        </page>
-                    </notebook>
                 </xpath>
 
                 <!-- Stat button: Fetch Event Log -->
