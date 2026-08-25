@@ -10,24 +10,25 @@
 
                 <xpath expr="//field[@name='provider_id']" position="after">
                     <field name="show_mobilepay_fields" invisible="1"/>
+                </xpath>
 
-                    <!--
-                        Single flat group — no nested groups.
-                        In Odoo 17, nested <group> each take 50% width causing
-                        overlap. A single <group> renders a clean two-column
-                        label/value table at full sheet width.
-                    -->
+                <xpath expr="//sheet" position="inside">
                     <group name="mobilepay_details"
                            string="MobilePay Details"
+                           col="2"
                            invisible="not show_mobilepay_fields">
-                        <field name="authorized_amount"/>
-                        <field name="mobilepay_status"/>
-                        <field name="captured_amount"/>
-                        <field name="last_status_poll"/>
-                        <field name="refunded_amount"/>
-                        <field name="capture_eligible"/>
-                        <field name="mobilepay_payment_id"/>
-                        <field name="mobilepay_idempotency_key"/>
+                        <group string="Amounts">
+                            <field name="authorized_amount"/>
+                            <field name="captured_amount"/>
+                            <field name="refunded_amount"/>
+                            <field name="capture_eligible"/>
+                        </group>
+                        <group string="Status">
+                            <field name="mobilepay_payment_id"/>
+                            <field name="mobilepay_idempotency_key"/>
+                            <field name="mobilepay_status"/>
+                            <field name="last_status_poll"/>
+                        </group>
                     </group>
                 </xpath>
 
