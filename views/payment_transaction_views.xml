@@ -7,34 +7,50 @@
             <field name="model">payment.transaction</field>
             <field name="inherit_id" ref="payment.payment_transaction_form"/>
             <field name="arch" type="xml">
+
                 <xpath expr="//field[@name='provider_id']" position="after">
                     <field name="show_mobilepay_fields" invisible="1"/>
-                    <group name="mobilepay_details" string="MobilePay Details"
+
+                    <!--
+                        Two-column group for amounts + status.
+                        These are short values so nested <group> works fine.
+                    -->
+                    <group name="mobilepay_details"
+                           string="MobilePay Details"
                            invisible="not show_mobilepay_fields">
-                        <!-- Amounts and flags in a compact two-column layout -->
                         <group name="mobilepay_amounts" string="Amounts">
                             <field name="authorized_amount"/>
                             <field name="captured_amount"/>
                             <field name="refunded_amount"/>
                             <field name="capture_eligible"/>
                         </group>
-                        <!-- Status and timing in the right column -->
                         <group name="mobilepay_status_group" string="Status">
                             <field name="mobilepay_status"/>
                             <field name="last_status_poll"/>
                         </group>
-                        <!-- Full-width rows for long ID / key values -->
-                        <group name="mobilepay_ids" col="2">
-                            <field name="mobilepay_payment_id"
-                                   colspan="2"
-                                   style="font-family: monospace;"/>
-                            <field name="mobilepay_idempotency_key"
-                                   colspan="2"
-                                   style="font-family: monospace;"/>
-                        </group>
                     </group>
                 </xpath>
-                <!-- Action buttons for MobilePay transactions -->
+
+                <!--
+                    Inject a notebook page for the long ID / key values.
+                    A notebook page gives each field the full sheet width,
+                    guaranteed to never wrap character-by-character.
+                    We insert it before any existing notebook so it appears first.
+                -->
+                <xpath expr="//notebook" position="before">
+                    <notebook invisible="not show_mobilepay_fields">
+                        <page string="MobilePay IDs" name="mobilepay_ids">
+                            <group>
+                                <field name="mobilepay_payment_id"
+                                       readonly="1"/>
+                                <field name="mobilepay_idempotency_key"
+                                       readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </xpath>
+
+                <!-- Stat button: Fetch Event Log -->
                 <xpath expr="//div[@name='button_box']" position="inside">
                     <button name="action_fetch_mobilepay_event_log"
                             type="object"
@@ -44,10 +60,11 @@
                             class="oe_stat_button"
                             help="Fetch the full payment event history from MobilePay and add it to the chatter"/>
                 </xpath>
+
             </field>
         </record>
 
-        <!-- MobilePay Payment Transaction Tree View -->
+        <!-- MobilePay Payment Transaction List View -->
         <record id="payment_transaction_tree_mobilepay" model="ir.ui.view">
             <field name="name">payment.transaction.tree.mobilepay</field>
             <field name="model">payment.transaction</field>
@@ -55,19 +72,19 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='reference']" position="after">
                     <field name="show_mobilepay_fields" column_invisible="True"/>
-                    <field name="mobilepay_payment_id" 
+                    <field name="mobilepay_payment_id"
                            invisible="not show_mobilepay_fields"/>
-                    <field name="mobilepay_status" 
+                    <field name="mobilepay_status"
                            invisible="not show_mobilepay_fields"
-                           widget="badge" 
-                           decoration-success="mobilepay_status == 'CAPTURED'" 
-                           decoration-warning="mobilepay_status in ('RESERVED', 'AUTHORIZED')" 
+                           widget="badge"
+                           decoration-success="mobilepay_status == 'CAPTURED'"
+                           decoration-warning="mobilepay_status in ('RESERVED', 'AUTHORIZED')"
                            decoration-danger="mobilepay_status in ('CANCELLED', 'ABORTED', 'TERMINATED', 'EXPIRED')"/>
                 </xpath>
             </field>
         </record>
 
-        <!-- MobilePay Transactions Menu Action -->
+        <!-- MobilePay Transactions Window Action -->
         <record id="action_mobilepay_transactions" model="ir.actions.act_window">
             <field name="name">MobilePay Transactions</field>
             <field name="res_model">payment.transaction</field>
