@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <!-- ================================================================
-         MobilePayModeDialog
-         Operator chooses between Phone Push and QR Code.
-    ================================================================ -->
-    <t t-name="mobilepay_payment.MobilePayModeDialog">
-        <Dialog title="'MobilePay — Choose Payment Mode'">
-            <div class="o_mobilepay_mode_dialog d-flex flex-column align-items-center gap-3 p-4">
+    <!--
+        All templates here extend AbstractAwaitablePopup, which renders a
+        standard POS popup wrapper. The root element for popup content is
+        the <div class="popup"> block expected by the POS popup service.
+    -->
 
-                <p class="text-muted text-center mb-3">
+    <!-- ================================================================
+         MobilePayModePopup
+         Operator chooses Phone Push or QR Code.
+    ================================================================ -->
+    <t t-name="mobilepay_payment.MobilePayModePopup" owl="1">
+        <div class="popup mobilepay-mode-popup">
+            <div class="title" t-esc="props.title"/>
+            <div class="body d-flex flex-column align-items-center gap-3 p-3">
+
+                <p class="text-muted text-center mb-2">
                     How should the customer pay?
                 </p>
 
@@ -20,7 +27,9 @@
                     <i class="fa fa-mobile fa-2x"/>
                     <div class="text-start">
                         <div class="fw-bold">Send Push to Phone</div>
-                        <small class="text-white-50">Customer receives a notification in their MobilePay app</small>
+                        <small class="text-white-50">
+                            Customer receives a notification in their MobilePay app
+                        </small>
                     </div>
                 </button>
 
@@ -36,25 +45,35 @@
                 </button>
 
             </div>
-        </Dialog>
+            <div class="footer d-flex justify-content-end">
+                <button class="btn btn-outline-secondary" t-on-click="props.close">
+                    Cancel
+                </button>
+            </div>
+        </div>
     </t>
 
     <!-- ================================================================
-         MobilePayPhoneDialog
+         MobilePayPhonePopup
          Capture customer phone number before push payment.
     ================================================================ -->
-    <t t-name="mobilepay_payment.MobilePayPhoneDialog">
-        <Dialog title="'MobilePay — Enter Phone Number'">
-            <div class="o_mobilepay_phone_dialog d-flex flex-column align-items-center gap-3 p-4">
+    <t t-name="mobilepay_payment.MobilePayPhonePopup" owl="1">
+        <div class="popup mobilepay-phone-popup">
+            <div class="title" t-esc="props.title"/>
+            <div class="body d-flex flex-column align-items-center gap-3 p-3">
 
                 <!-- Phone display -->
-                <div class="o_mobilepay_phone_display w-100 text-center">
+                <div class="w-100 text-center border rounded py-2 bg-light">
                     <span class="fs-2 fw-bold font-monospace" t-esc="state.phone || '—'"/>
                 </div>
 
                 <!-- Numeric keypad -->
-                <div class="o_mobilepay_keypad d-grid gap-2" style="grid-template-columns: repeat(3, 1fr); width: 280px;">
-                    <t t-foreach="['1','2','3','4','5','6','7','8','9','+','0','⌫']" t-as="digit" t-key="digit">
+                <div
+                    class="d-grid gap-2"
+                    style="grid-template-columns: repeat(3, 1fr); width: 280px;">
+                    <t t-foreach="['1','2','3','4','5','6','7','8','9','+','0','⌫']"
+                       t-as="digit"
+                       t-key="digit">
                         <button
                             class="btn btn-outline-secondary btn-lg fs-4"
                             t-on-click="() => digit === '⌫' ? deleteLast() : appendDigit(digit)"
@@ -62,72 +81,86 @@
                     </t>
                 </div>
 
-                <!-- Confirm / Cancel -->
-                <div class="d-flex gap-2 w-100 mt-2">
-                    <button
-                        class="btn btn-primary flex-fill"
-                        t-att-disabled="!state.phone"
-                        t-on-click="confirm">
-                        Send Push
-                    </button>
-                    <button class="btn btn-outline-secondary" t-on-click="props.close">
-                        Cancel
-                    </button>
-                </div>
-
             </div>
-        </Dialog>
+            <div class="footer d-flex gap-2 justify-content-end">
+                <button class="btn btn-outline-secondary" t-on-click="cancel">
+                    Cancel
+                </button>
+                <button
+                    class="btn btn-primary"
+                    t-att-disabled="!state.phone"
+                    t-on-click="confirm">
+                    Send Push
+                </button>
+            </div>
+        </div>
     </t>
 
     <!-- ================================================================
-         MobilePayQrDisplay
-         Full-screen QR overlay with countdown, status, and fallback.
+         MobilePayQrPopup
+         QR code display with countdown, status text, and fallback actions.
     ================================================================ -->
-    <t t-name="mobilepay_payment.MobilePayQrDisplay">
-        <Dialog
-            title="'MobilePay — Scan to Pay'"
-            size="'lg'">
-            <div class="o_mobilepay_qr_display d-flex flex-column align-items-center gap-3 p-3">
+    <t t-name="mobilepay_payment.MobilePayQrPopup" owl="1">
+        <div class="popup mobilepay-qr-popup">
+            <div class="title" t-esc="props.title"/>
+            <div class="body d-flex flex-column align-items-center gap-3 p-3">
 
                 <!-- QR Image -->
-                <div class="o_mobilepay_qr_image border rounded p-2 bg-white">
+                <div class="border rounded p-2 bg-white">
                     <img
                         t-att-src="qrSrc"
                         alt="MobilePay QR Code"
-                        style="width: 260px; height: 260px; object-fit: contain;"/>
+                        style="width: 240px; height: 240px; object-fit: contain;"/>
                 </div>
 
                 <!-- Status text -->
-                <p class="text-center text-muted mb-0">
-                    <t t-esc="state.statusText"/>
-                </p>
+                <p class="text-center text-muted mb-0" t-esc="state.statusText"/>
 
-                <!-- Countdown -->
-                <div
-                    class="o_mobilepay_countdown badge fs-6"
-                    t-attf-class="badge fs-6 {{ remaining > 15 ? 'bg-secondary' : remaining > 5 ? 'bg-warning text-dark' : 'bg-danger' }}">
+                <!-- Countdown badge -->
+                <span
+                    t-attf-class="badge fs-6 {{
+                        remaining > 15 ? 'bg-secondary' :
+                        remaining > 5  ? 'bg-warning text-dark' :
+                                         'bg-danger'
+                    }}">
                     <i class="fa fa-clock-o me-1"/>
                     <t t-esc="remaining"/>s
-                </div>
-
-                <!-- Action buttons -->
-                <div class="d-flex gap-2 flex-wrap justify-content-center mt-2">
-                    <button
-                        class="btn btn-outline-primary"
-                        t-on-click="switchToPhone">
-                        <i class="fa fa-mobile me-1"/>
-                        Switch to Phone Push
-                    </button>
-                    <button
-                        class="btn btn-outline-danger"
-                        t-on-click="cancel">
-                        <i class="fa fa-times me-1"/>
-                        Cancel Payment
-                    </button>
-                </div>
+                </span>
 
             </div>
-        </Dialog>
+            <div class="footer d-flex gap-2 flex-wrap justify-content-between">
+                <button
+                    class="btn btn-outline-primary"
+                    t-on-click="switchToPhone">
+                    <i class="fa fa-mobile me-1"/>
+                    Switch to Phone Push
+                </button>
+                <button
+                    class="btn btn-outline-danger"
+                    t-on-click="cancelPayment">
+                    <i class="fa fa-times me-1"/>
+                    Cancel Payment
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <!-- ================================================================
+         MobilePayErrorPopup
+         Simple error display used as a fallback when ErrorPopup
+         is not directly importable.
+    ================================================================ -->
+    <t t-name="mobilepay_payment.MobilePayErrorPopup" owl="1">
+        <div class="popup mobilepay-error-popup">
+            <div class="title" t-esc="props.title"/>
+            <div class="body text-center p-3">
+                <i class="fa fa-exclamation-triangle text-danger fa-2x mb-3"/>
+                <p t-esc="props.body"/>
+            </div>
+            <div class="footer d-flex justify-content-end">
+                <button class="btn btn-primary" t-on-click="props.close">OK</button>
+            </div>
+        </div>
     </t>
 
 </templates>
