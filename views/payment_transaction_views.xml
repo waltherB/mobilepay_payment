@@ -11,17 +11,26 @@
                     <field name="show_mobilepay_fields" invisible="1"/>
                     <group name="mobilepay_details" string="MobilePay Details"
                            invisible="not show_mobilepay_fields">
-                        <group name="mobilepay_ids">
-                            <field name="mobilepay_payment_id"/>
-                            <field name="mobilepay_idempotency_key"/>
-                            <field name="mobilepay_status"/>
-                            <field name="last_status_poll"/>
-                        </group>
-                        <group name="mobilepay_amounts">
+                        <!-- Amounts and flags in a compact two-column layout -->
+                        <group name="mobilepay_amounts" string="Amounts">
                             <field name="authorized_amount"/>
                             <field name="captured_amount"/>
                             <field name="refunded_amount"/>
                             <field name="capture_eligible"/>
+                        </group>
+                        <!-- Status and timing in the right column -->
+                        <group name="mobilepay_status_group" string="Status">
+                            <field name="mobilepay_status"/>
+                            <field name="last_status_poll"/>
+                        </group>
+                        <!-- Full-width rows for long ID / key values -->
+                        <group name="mobilepay_ids" col="2">
+                            <field name="mobilepay_payment_id"
+                                   colspan="2"
+                                   style="font-family: monospace;"/>
+                            <field name="mobilepay_idempotency_key"
+                                   colspan="2"
+                                   style="font-family: monospace;"/>
                         </group>
                     </group>
                 </xpath>
