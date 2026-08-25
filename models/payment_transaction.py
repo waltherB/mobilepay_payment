@@ -421,6 +421,27 @@ class PaymentTransaction(models.Model):
             )
             return None
 
+    def _mobilepay_chatter_post(self, body):
+        """
+        Post a note to the transaction chatter when mail.thread is available
+        (Odoo Enterprise or mail module installed), otherwise fall back to
+        _logger so the message is still captured in server logs on CE.
+        """
+        if hasattr(self, "message_post"):
+            try:
+                self.message_post(
+                    body=body,
+                    message_type="notification",
+                    subtype_xmlid="mail.mt_note",
+                )
+                return
+            except Exception:
+                pass
+        # CE fallback: strip HTML tags for clean log output
+        import re as _re
+        plain = _re.sub(r"<[^>]+>", " ", body).strip()
+        _logger.info("MobilePay [%s]: %s", self.reference, plain)
+
     def _mobilepay_fetch_and_log_events(self):
         """
         Fetch the payment event log from MobilePay and post new events to the
@@ -442,14 +463,16 @@ class PaymentTransaction(models.Model):
         if not events or not isinstance(events, list):
             return
 
-        # Collect idempotency keys already posted to avoid duplicate chatter entries
+        # Collect idempotency keys already logged to avoid duplicates.
+        # message_ids is only available when mail.thread is in the MRO
+        # (Enterprise or mail module installed); fall back to empty set on CE.
         existing_keys = set()
-        for msg in self.message_ids:
-            body = msg.body or ""
-            # Keys are embedded as "Key: <value>" in the message body
-            for line in body.split("\n"):
-                if line.startswith("Key:"):
-                    existing_keys.add(line.split(":", 1)[1].strip())
+        if hasattr(self, "message_ids"):
+            for msg in self.message_ids:
+                body = msg.body or ""
+                for line in body.split("\n"):
+                    if line.startswith("Key:"):
+                        existing_keys.add(line.split(":", 1)[1].strip())
 
         for event in events:
             ikey = event.get("idempotencyKey") or ""
@@ -476,10 +499,8 @@ class PaymentTransaction(models.Model):
             if ikey:
                 lines.append(_("Key: %(key)s", key=ikey))
 
-            self.message_post(
+            self._mobilepay_chatter_post(
                 body="<br/>".join(lines),
-                message_type="notification",
-                subtype_xmlid="mail.mt_note",
             )
             _logger.info(
                 "MobilePay event logged for %s: %s at %s (success=%s)",
@@ -791,14 +812,12 @@ class PaymentTransaction(models.Model):
                 )
                 try:
                     tx._send_cancel_request()
-                    tx.message_post(
+                    tx._mobilepay_chatter_post(
                         body=_(
                             "MobilePay payment reservation expired after %(days)d days "
                             "and was automatically cancelled to release the customer's funds.",
                             days=age.days,
                         ),
-                        message_type="notification",
-                        subtype_xmlid="mail.mt_note",
                     )
                 except Exception as e:
                     _logger.error(
@@ -810,14 +829,14 @@ class PaymentTransaction(models.Model):
                 # Only warn once (check if we already posted a warning)
                 already_warned = any(
                     "capture deadline" in (msg.body or "")
-                    for msg in tx.message_ids
+                    for msg in (tx.message_ids if hasattr(tx, "message_ids") else [])
                 )
                 if not already_warned:
                     _logger.warning(
                         "MobilePay: Transaction %s is %d days old and approaching capture deadline.",
                         tx.reference, age.days,
                     )
-                    tx.message_post(
+                    tx._mobilepay_chatter_post(
                         body=_(
                             "⚠️ MobilePay payment %(ref)s has been authorized for %(days)d days "
                             "and is approaching the capture deadline (14 days). "
@@ -825,8 +844,6 @@ class PaymentTransaction(models.Model):
                             ref=tx.reference,
                             days=age.days,
                         ),
-                        message_type="notification",
-                        subtype_xmlid="mail.mt_note",
                     )
 
     @api.model
@@ -852,13 +869,11 @@ class PaymentTransaction(models.Model):
                 )
                 try:
                     tx._send_cancel_request()
-                    tx.message_post(
+                    tx._mobilepay_chatter_post(
                         body=_(
                             "MobilePay payment authorization automatically cancelled "
                             "because the related sale order was cancelled.",
                         ),
-                        message_type="notification",
-                        subtype_xmlid="mail.mt_note",
                     )
                 except Exception as e:
                     _logger.error(
