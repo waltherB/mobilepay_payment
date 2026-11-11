@@ -5,7 +5,7 @@
             <!-- Branding Header -->
             <div class="d-flex align-items-center mb-3">
                 <img t-att-src="'/mobilepay_payment/static/img/mobilepay_logo.svg'" alt="MobilePay Logo" style="height: 24px; width: auto; margin-right: 10px;"/>
-                <span class="text-muted">Here, you can pay with MobilePay</span>
+                <span class="text-muted">Pay with Vipps or MobilePay</span>
             </div>
             
             <label t-attf-for="mobilepay_phone_#{provider_id}" class="col-form-label">Phone Number</label>
@@ -13,9 +13,11 @@
                    name="mobilepay_phone" 
                    t-attf-id="mobilepay_phone_#{provider_id}" 
                    class="form-control" 
-                   placeholder="+45 12 34 56 78"
+                   placeholder="Phone number with country code"
+                   inputmode="tel"
+                   autocomplete="tel"
                    t-att-value="((request.website.sale_get_order() and (request.website.sale_get_order().partner_id.phone or request.website.sale_get_order().partner_id.mobile)) or (request.env.user.partner_id.phone or request.env.user.partner_id.mobile))"/>
-            <small class="form-text text-muted">Enter your MobilePay phone number.</small>
+            <small class="form-text text-muted">Enter your Vipps or MobilePay phone number with country code, or leave it blank. Local numbers use your billing country.</small>
         </div>
     </template>
 

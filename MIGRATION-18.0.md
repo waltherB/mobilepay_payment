@@ -3,7 +3,8 @@
 ## Current handoff (2026-11-11)
 
 Further live testing is paused at the operator's request; keep the HTTP-only
-local setup unchanged. The latest follow-up suite has **93 passing tests**.
+local setup unchanged. The latest Nordic follow-up suite has **111 passing
+Odoo tests and 5 passing frontend tests**.
 The operator reports successful test API authentication, a published Test Mode
 provider and Capture on Delivery selected. These are configuration/authentication
 results, not completed payment acceptance.
@@ -19,6 +20,11 @@ Report API migration, remaining production gates, and the requested
 **12 January 2027** DK/FI MobilePay-to-Vipps branding cutover. Official Vipps Blue
 logo and SVG paymark libraries were found and linked. No branding assets or
 technical identifiers were changed, and no public tunnel was created.
+
+The initial migration was subsequently committed as `2d8209b` and pushed to
+`origin/18.0` at the operator's request; `main` was not changed. The Nordic
+follow-up below is a separate, locally reviewable change. Earlier test counts,
+DK-only coverage descriptions and Git status below are historical evidence.
 
 ## Outcome
 
@@ -388,3 +394,129 @@ production edited/cleared input, generic/shop routes, and HTTP rejection before
 API creation. Earlier 91/92-test results above are historical evidence.
 Public HTTPS and actual remote phone-page acceptance remain BLOCKED pending an
 operator-provided TLS endpoint and test-app run.
+
+## Follow-up: Nordic countries and translations (18.0.1.2.0)
+
+Source: the committed Odoo 18 integration (`2d8209b`); target remains Odoo 18
+Community. This follow-up does not attempt Odoo 19. Risk remains **HIGH** because
+currency selection and phone identity affect real money movement; production
+acceptance remains **BLOCKED**.
+
+### Findings and plan
+
+The original method's DK/DKK restrictions hid it from Nordic customers despite
+the ePayment API's cross-border capability. Backend allowlisting NOK/EUR did
+not enforce the sales unit's actual currency. Browser code silently added +45
+to every eight-digit phone; it disagreed with the country-aware server code.
+The Danish catalog was an incomplete Odoo 17 inventory; other Nordic catalogs
+were absent.
+
+The [official Nordic guide](https://developer.vippsmobilepay.com/docs/knowledge-base/across-borders/)
+was checked before implementation. It lists Danish/DKK (including Greenland),
+Finnish/EUR and Norwegian/NOK wallet sales units; Swedish customers pay
+cross-border, not necessarily in SEK. Faroese residents use the Danish region
+with a Danish phone number. Odoo 17/18 `payment.provider` currency computation,
+compatibility signatures and `payment.method` country/currency filters were
+compared with the custom implementation.
+
+Plan: distinguish merchant region from customer country; expand Nordic method
+availability; centralize phone normalization on the server; update existing
+default records without overwriting operator policy; regenerate current terms,
+translate them and test actual translation loading, then rerun the registered
+regressions. Keep real payment, HTTPS and report acceptance separate.
+
+### Changed surfaces and data
+
+- [Manifest](./__manifest__.py): `18.0.1.2.0`, Nordic scope; unchanged Odoo/Python
+  dependency graph.
+- [Provider](./models/payment_provider.py) and
+  [configuration view](./views/payment_provider_views.xml): new
+  `mobilepay_sales_unit_region` selection, default DK, with DK/DKK, FI/EUR,
+  NO/NOK mapping. Standard currency filtering and an independent checkout guard
+  enforce the configured merchant currency, including when a filter is empty.
+- [Transaction](./models/payment_transaction.py): currency mismatch rejected
+  before API creation; customer-country phone normalization supports DK/NO,
+  FI/SE trunk zero and Greenland. Explicit international numbers take precedence.
+- [Frontend](./static/src/js/payment_form.js),
+  [templates](./views/mobilepay_templates.xml) and
+  [portal](./controllers/payment_portal.py): neutral Vipps/MobilePay text,
+  country-code guidance and no browser-side Danish-prefix rewrite. Existing
+  route authentication/access checks and optional clearing behavior remain.
+- [Seed data](./data/payment_provider_data.xml): DK/FI/NO/SE/GL/FO customer
+  countries, DKK/EUR/NOK method currencies; provider region narrows actual
+  available currencies.
+- [Translation catalogs](./i18n/): regenerated Odoo 18 POT and 249 complete terms
+  in each of Danish, Finnish, Norwegian Bokmal and Swedish (996 translations).
+  Contexts, placeholders, markup and current XML references are checked.
+  [Public frontend translation hook](./models/ir_http.py) includes the addon in
+  website JavaScript translations; the core payment hook only includes `payment`.
+  The same source/target Odoo hook was verified before extending it.
+- [Upgrade script](./migrations/18.0.1.2.0/post-migrate.py): expands only the
+  old exact DK and DKK method restrictions; preserves unrestricted/custom
+  lists. Changes only default provider/method names to `Vipps / MobilePay`.
+  It is idempotent and preserves custom names and all credential/capture settings.
+- [Market tests](./tests/test_nordic.py),
+  [HTTP tests](./tests/test_payment_http.py) and
+  [frontend tests](./tests/test_payment_form.mjs): country/currency combinations,
+  cross-border phone payloads, operator restrictions, other providers and
+  preservation/idempotency checks.
+- [Localization tests](./tests/test_nordic_localization.py): six checks for
+  catalog coverage, references, placeholders and runtime translation surfaces.
+- [README](./README.md), [TODO](./TODO.md) and
+  [Apps description](./static/description/index.html): updated supported scope
+  and deployment prerequisites.
+
+No models, existing fields, XML IDs, API routes or technical provider/method
+codes were renamed or removed. No field type, SQL constraint, stored monetary
+computation or transaction/accounting relationship changed. The new stored
+region field and method availability relations require the versioned upgrade.
+Existing non-Danish customized installations must explicitly verify their
+merchant region; the migration does not guess it from billing country.
+No customer data is discarded. Future DK/FI branding assets are not installed.
+
+### Validation and manual acceptance
+
+- **PASS:** Python AST, XML parsing, manifest data/asset paths and Git whitespace.
+- **PASS:** targeted market, phone and migration tests after correcting a
+  duplicate synthetic transaction reference in the new test fixture. Complete
+  initial failure and successful retest logs are retained in the session.
+- **PASS:** 104 registered Odoo tests before the localization follow-up,
+  zero failures/errors (`mobilepay18-nordic-runtime-suite.log`).
+- **PASS:** full follow-up suite of 111 registered Odoo tests, zero failures or
+  errors (`mobilepay18-nordic-final-suite.log`), including four-language public
+  frontend payloads, translated QWeb/settings and DKK/EUR/NOK modification flows.
+  The first localization run exposed an incomplete `MockRequest` HTTP response
+  fixture; binding the real target request response helpers fixed the test
+  without bypassing the decorated public controller. Failure/retest logs remain.
+- **PASS:** a fresh final Odoo export matched all four catalogs exactly:
+  249 terms per language, 996 complete translations. It detected the additional
+  `HTTP Routing` model term introduced by the frontend hook; that term was added
+  before a final six-test localization retest passed with zero failures/errors
+  (`mobilepay18-nordic-localization-final249.log`).
+- **PASS:** 5 frontend tests with
+  `node --test addons/custom/mobilepay_payment/tests/test_payment_form.mjs`.
+  These execute the real extension with a stubbed host, not a real browser.
+- **PASS:** a fingerprint comparison before/after the full update confirmed
+  existing provider credentials and capture/account settings were unchanged;
+  persistent module state is installed at `18.0.1.2.0`.
+- **PASS:** Odoo logs inspected. Simulated offline/API/accounting failures and
+  invalid-input/webhook warnings are expected negative-path tests. The
+  pre-existing provider-view link/button accessibility warning remains unchanged.
+- **NOT RUN:** a new fresh installation for this follow-up. The only authorized
+  disposable database already contains operator settings and was not recreated.
+  Earlier fresh-install evidence applies to the earlier version only.
+- **BLOCKED:** real merchant/app approval, HTTPS returns/webhooks and remote
+  Report API acceptance. No outbound payment acceptance is claimed.
+
+The Odoo command was the README update command (`-u mobilepay_payment`), with
+`--db_host=db18 --db_user=odoo`, HTTP port 18078, cron threads zero and existing
+local connection configuration. Only `mobilepay18_test` was changed. No restore,
+customer backup access, new public exposure, commit or push was performed for
+this follow-up.
+
+Manual acceptance still requires each deployed region's credential/region
+agreement, remote phone/app flow, cross-border captures/refunds and signed
+webhooks. Have native speakers review translated checkout, settings and
+accounting wording. Install the selected Odoo languages and enable them on the
+website; the module cannot translate Vipps's hosted page or app. No Greenlandic,
+Faroese or Norwegian Nynorsk translation coverage is claimed.

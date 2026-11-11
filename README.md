@@ -3,8 +3,10 @@
 Development integration with the Vipps MobilePay ePayment API. The client calls
 `/epayment/v1`, `/webhooks/v1`, and `/settlement/v1` endpoints.
 
-**Status: not production-ready.** Version `18.0.1.1.0` has 93 passing Odoo 18
-tests and local Chromium checkout acceptance with synthetic API responses.
+**Status: not production-ready.** Version `18.0.1.2.0` has 111 passing Odoo 18
+tests plus 5 frontend regressions, extending the earlier 93-test baseline with
+Nordic market and localization coverage. Earlier local Chromium checkout
+acceptance used synthetic API responses.
 The demonstrated lifecycle/phone gaps are repaired. No live merchant API,
 MobilePay app approval, or public reverse-proxy delivery has been accepted.
 The legacy settlement API adapter remains blocked by a published-contract mismatch.
@@ -50,7 +52,8 @@ been changed for this future cutover.
 | Webhooks, return route, status polling | Signed HTTP events, tampering, duplicate delivery, retry responses and return tested locally |
 | Checkout phone input | Real guest/authenticated browser editing, clearing, invalid input and button recovery tested |
 | Settlement and fee entries | Actual clearing reconciliation, refunds, net/fee/VAT balances, draft/error retry tested with synthetic reports; remote API adapter not accepted |
-| Danish localization | Translation file exists; translation completeness not verified |
+| Nordic availability | DK, FI, NO, SE, GL and FO customers; merchant-region currency enforcement |
+| Localization | English source; Danish, Finnish, Norwegian Bokmal and Swedish catalogs |
 
 No POS terminal integration is included in this branch.
 
@@ -74,8 +77,12 @@ Both dependencies were available in the local test image.
 
 1. Obtain **test** Client ID, Client Secret, Subscription Key, and Merchant Serial
    Number from the [Vipps MobilePay portal](https://portal.vippsmobilepay.com/).
-2. Open **Accounting > Configuration > Payment Providers > MobilePay**.
+2. Open **Accounting > Configuration > Payment Providers > Vipps / MobilePay**
+   (or your customized provider name).
    Enter the test credentials and select **Test Mode**, not Enabled.
+   Set **Sales Unit Region** to the region registered for those credentials:
+   Denmark (DKK), Finland (EUR), or Norway (NOK). This is not the customer's
+   country. The default remains Denmark for existing Danish installations.
 3. Configure the settlement journal, clearing account, fee expense account, and
    optional fee tax. Configure the standard payment journal as a bank journal.
    Missing MobilePay outstanding accounts default to the configured clearing
@@ -96,11 +103,53 @@ Credentials use Fernet with the encryption key stored in the same Odoo database;
 this is not an external secrets vault. Preserve that key when migrating existing
 encrypted credentials.
 
-The seeded payment method is restricted to **Denmark and DKK**. Some backend
-helpers also recognize NOK/EUR and Norwegian/Finnish phone numbers, but this
-does not establish working Norway/Finland support. The entered phone number is
-sent in both environments. In Test Mode, use a registered Merchant Test user,
-not an ordinary personal phone number. Clearing the input omits the phone.
+### Nordic markets and languages
+
+The payment method allows customers in **Denmark, Finland, Norway, Sweden,
+Greenland and the Faroe Islands**. Customer country does not determine payment
+currency: a Norwegian or Swedish customer can pay a Danish merchant in DKK.
+
+| Registered merchant sales unit | Payment currency |
+| --- | --- |
+| Denmark, including Greenland | DKK |
+| Finland | EUR |
+| Norway | NOK |
+
+These are the wallet sales-unit regions listed in the
+[official Nordic guide](https://developer.vippsmobilepay.com/docs/knowledge-base/across-borders/).
+Swedish customers use cross-border payments; this is **not** a claim of Swedish
+merchant onboarding or SEK support. Mismatched currencies are hidden at
+checkout and rejected before payment creation, even if an operator clears the
+provider's currency filter. Configure each merchant unit's own credentials and
+matching region; never infer its region from the customer's billing country.
+Activate the matching Odoo currency and website pricelist. Selecting a region
+does not convert existing carts or change the company's accounting currency.
+
+The entered phone is sent in both environments. Use `+` or `00` and a country
+code for cross-border phone numbers. Local numbers are normalized on the server
+using the billing country (DK/NO eight digits, FI/SE leading national zero,
+GL six digits). Faroese customers use a Danish number, as required by the
+official eligibility guidance. Without a billing country, the company country
+and then sales-unit region provide the fallback. The browser does not prepend
+`+45` to Norwegian numbers. Clearing the input omits the phone. Number formatting
+does not establish that the person has an eligible app account; in Test Mode,
+use a registered Merchant Test user, not an ordinary personal number.
+
+English source text and **Danish, Finnish, Norwegian Bokmal and Swedish**
+translations cover all 249 extracted Odoo module terms per language, including checkout,
+JavaScript errors, settings and accounting messages. Install the desired Odoo
+languages and add them to the website's languages to expose the language picker.
+Swedish also serves Swedish-speaking Finnish customers; Danish serves the Danish
+region. Greenlandic, Faroese and Norwegian Nynorsk are not supplied or claimed
+as app-supported languages. Vipps controls its own hosted page and app language;
+the module catalogs translate Odoo, not the remote service.
+
+An update expands the old DK-only/DKK-only payment-method defaults and changes
+the default display names to `Vipps / MobilePay`. Empty or customized method
+restrictions and customized names are preserved. No technical identifiers,
+credentials, accounting history or currencies on existing transactions change.
+Check the sales-unit region explicitly on any previously customized non-Danish
+provider. The separate January 2027 logo cutover remains pending.
 
 Payment creation requires a real HTTPS website domain/base URL. The addon
 rejects HTTP configuration before contacting Vipps; it cannot turn an HTTP
@@ -138,8 +187,13 @@ test modules imported by [tests/__init__.py](tests/__init__.py):
 - [Feature flags](tests/test_feature_support.py): 1 test.
 - [Odoo 18 regression tests](tests/test_odoo18.py): 12 tests.
 - [Lifecycle tests](tests/test_payment_lifecycle.py): 28 tests.
-- [HTTP checkout/webhook tests](tests/test_payment_http.py): 9 tests.
+- [HTTP checkout/webhook tests](tests/test_payment_http.py): 10 tests.
 - [Delivery/accounting acceptance](tests/test_payment_acceptance.py): 15 tests.
+- [Nordic market tests](tests/test_nordic.py): 11 tests, including cross-border
+  country/currency combinations and preservation of customized upgrade records.
+- [Localization tests](tests/test_nordic_localization.py): 6 tests for current
+  catalogs, placeholders/references, Odoo loading and public frontend translations.
+- [Frontend phone tests](tests/test_payment_form.mjs): 5 Node tests.
 
 Journal configuration also has a non-superuser regression test: when the
 accounting payment method is missing, the addon uses Odoo's standard provider
@@ -167,6 +221,15 @@ Both commands change the named database. Inspect the complete logs and module
 state, not just the exit code. Do not run these commands against a customer or
 non-disposable migration database. Do not use the workspace restore script for
 addon tests.
+
+Run the standalone frontend regressions from the migration workspace root:
+
+```bash
+node --test addons/custom/mobilepay_payment/tests/test_payment_form.mjs
+```
+
+These execute the actual payment-form extension with a stubbed Odoo host; they
+are not a replacement for the real browser and merchant-app acceptance gates.
 
 The HTTP tests require a real nonzero HTTP port. The separate local Chromium
 run used an isolated Odoo server with synthetic API responses and outbound HTTP

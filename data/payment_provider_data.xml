@@ -3,7 +3,7 @@
     <data noupdate="True">
         <!-- MobilePay Payment Provider -->
         <record id="payment_provider_mobilepay" model="payment.provider">
-            <field name="name">MobilePay</field>
+            <field name="name">Vipps / MobilePay</field>
             <field name="image_128" type="base64" file="mobilepay_payment/static/description/icon.svg"/>
             <field name="code">mobilepay</field>
             <field name="state">disabled</field>
@@ -20,14 +20,14 @@
 
         <!-- MobilePay Payment Method -->
         <record id="payment_method_mobilepay" model="payment.method">
-            <field name="name">MobilePay</field>
+            <field name="name">Vipps / MobilePay</field>
             <field name="code">mobilepay</field>
             <field name="sequence">10</field>
             <field name="support_refund">partial</field>
             <field name="image" type="base64" file="mobilepay_payment/static/description/icon.svg"/>
             <field name="provider_ids" eval="[(4, ref('payment_provider_mobilepay'))]"/>
-            <field name="supported_country_ids" eval="[(4, ref('base.dk'))]"/>
-            <field name="supported_currency_ids" eval="[(4, ref('base.DKK'))]"/>
+            <field name="supported_country_ids" eval="[(6, 0, [ref('base.dk'), ref('base.fi'), ref('base.no'), ref('base.se'), ref('base.gl'), ref('base.fo')])]"/>
+            <field name="supported_currency_ids" eval="[(6, 0, [ref('base.DKK'), ref('base.EUR'), ref('base.NOK')])]"/>
         </record>
 
     </data>

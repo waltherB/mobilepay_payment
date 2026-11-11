@@ -1,6 +1,7 @@
 # MobilePay / Vipps TODOs
 
-Updated: 2026-11-11. Work remains local on `18.0`.
+Updated: 2026-11-11. The initial migration was pushed on `18.0`;
+the Nordic coverage follow-up remains local for review.
 See [migration and acceptance evidence](MIGRATION-18.0.md).
 Unchecked items are not accepted functionality or production approval.
 
@@ -103,6 +104,30 @@ DK/FI Vipps Blue libraries and reconfirm final market rules before rollout.
 The official announcement says existing QR material, numbers and links continue
 to work unless product-specific guidance says otherwise.
 
+## Nordic market and localization acceptance
+
+- [x] Allow DK/FI/NO/SE/GL/FO customers in the default payment method.
+- [x] Configure merchant sales-unit region separately from customer country;
+  enforce DK/DKK, FI/EUR and NO/NOK at checkout and before remote creation.
+- [x] Remove browser-side Danish-prefix guessing; normalize Nordic local phones
+  by billing country and accept explicit international numbers.
+- [x] Expand only legacy default restrictions/names on upgrade; preserve custom
+  restrictions, credentials, history and technical identifiers.
+- [x] Refresh the Odoo 18 term inventory and supply all 249 extracted terms in
+  Danish, Finnish, Norwegian Bokmal and Swedish (996 translations).
+- [x] Include the addon in Odoo's public frontend translation module list so
+  translated JavaScript payment errors are available to website visitors.
+- [ ] Complete real test-app approval, return, capture/refund and signed webhook
+  acceptance for each deployed merchant region and cross-border customer market.
+- [ ] Confirm the operator's sales-unit region matches its actual credentials;
+  Swedish customers do not imply SEK or Swedish merchant-unit support.
+- [ ] Have native speakers review Danish, Finnish, Norwegian Bokmal and Swedish
+  wording in desktop/mobile checkout, errors and accounting screens.
+- [ ] Confirm deployed website languages and public JavaScript translations;
+  Odoo catalogs do not control the hosted Vipps payment page or app language.
+- [ ] Reconfirm current multi-market Vipps/MobilePay logo/button presentation
+  with official assets; keep the future DK/FI Vipps Blue cutover separate.
+
 ## 4. Remaining production gates
 
 - [ ] Test remote-success/local-rollback recovery without duplicate money moves.
@@ -119,7 +144,9 @@ to work unless product-specific guidance says otherwise.
 ## Completed local evidence
 
 - Lifecycle, checkout-phone, journal permissions and HTTP return-URL validation
-  fixes: **93 registered tests pass** on the latest update.
+  fixes passed the earlier 93-test update.
+- Nordic market, currency, phone and localization follow-up:
+  **111 registered Odoo tests and 5 Node frontend tests pass**.
 - Earlier fresh installation: 91 tests passed before the two follow-up tests.
 - Local synthetic Chromium, signed HTTP, delivery/backorder and accounting
   acceptance passed; these do not substitute for merchant test-unit acceptance.

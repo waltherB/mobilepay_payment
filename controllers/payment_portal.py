@@ -14,11 +14,11 @@ class MobilePayPaymentPortal(PaymentPortal):
         if mobilepay_phone is not None and (
             not isinstance(mobilepay_phone, str) or len(mobilepay_phone) > 64
         ):
-            raise ValidationError(_("Please enter a valid MobilePay phone number."))
+            raise ValidationError(_("Please enter a valid Vipps or MobilePay phone number with country code."))
         tx = super()._create_transaction(*args, **kwargs)
         if tx.provider_code == "mobilepay" and mobilepay_phone is not None:
             phone = mobilepay_phone.strip()
             if phone and not tx._format_phone_number_v3(phone):
-                raise ValidationError(_("Please enter a valid MobilePay phone number."))
+                raise ValidationError(_("Please enter a valid Vipps or MobilePay phone number with country code."))
             return tx.with_context(mobilepay_phone=phone)
         return tx

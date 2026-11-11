@@ -6,6 +6,8 @@ from urllib.parse import urlparse, urlunparse
 from cryptography.fernet import Fernet
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
+from odoo.addons.payment import utils as payment_utils
+from odoo.addons.payment.const import REPORT_REASONS_MAPPING
 
 _logger = logging.getLogger(__name__)
 
@@ -16,6 +18,30 @@ class PaymentProvider(models.Model):
     code = fields.Selection(
         selection_add=[("mobilepay", "MobilePay")], ondelete={"mobilepay": "cascade"}
     )
+
+    mobilepay_sales_unit_region = fields.Selection(
+        [("DK", "Denmark (DKK)"), ("FI", "Finland (EUR)"), ("NO", "Norway (NOK)")],
+        string="Sales Unit Region",
+        required=True,
+        default="DK",
+        help="Must match the region registered for these merchant credentials, not the "
+             "customer's country. Greenland uses Denmark. Swedish customers can pay "
+             "cross-border; SEK is not supported by this wallet integration.",
+    )
+
+    def _mobilepay_currency_code(self):
+        self.ensure_one()
+        return {"DK": "DKK", "FI": "EUR", "NO": "NOK"}[self.mobilepay_sales_unit_region]
+
+    def _get_supported_currencies(self):
+        currencies = super()._get_supported_currencies()
+        if self.code == "mobilepay":
+            currencies = currencies.filtered(lambda c: c.name == self._mobilepay_currency_code())
+        return currencies
+
+    @api.depends("code", "mobilepay_sales_unit_region")
+    def _compute_available_currency_ids(self):
+        super()._compute_available_currency_ids()
 
 
     auto_capture_delay = fields.Integer(
@@ -610,34 +636,25 @@ class PaymentProvider(models.Model):
                     )
 
     @api.model
-    def _get_compatible_providers(self, *args, currency_id=None, **kwargs):
-        """Override to ensure MobilePay only works with DKK currency."""
+    def _get_compatible_providers(
+        self, company_id, partner_id, amount, currency_id=None, force_tokenization=False,
+        is_express_checkout=False, is_validation=False, report=None, **kwargs
+    ):
         providers = super()._get_compatible_providers(
-            *args, currency_id=currency_id, **kwargs
+            company_id, partner_id, amount, currency_id=currency_id,
+            force_tokenization=force_tokenization, is_express_checkout=is_express_checkout,
+            is_validation=is_validation, report=report, **kwargs
         )
-
-        _logger.info(
-            f"MobilePay: _get_compatible_providers call. Currency ID: {currency_id}. "
-            f"Partner ID: {kwargs.get('partner_id')}. Website ID: {kwargs.get('website_id')}. "
-            f"Force: {kwargs.get('force_selection')}"
-        )
-        _logger.info(
-            f"MobilePay: Initial compatible providers: {providers.mapped('name')} ({providers.mapped('code')})"
-        )
-
         if currency_id:
             currency = self.env["res.currency"].browse(currency_id)
-            if currency.name not in ("DKK", "NOK", "EUR"):
-                # Filter out MobilePay providers for unsupported currencies
-                mobilepay_providers = providers.filtered(
-                    lambda p: p.code == "mobilepay"
-                )
-                if mobilepay_providers:
-                    _logger.info(
-                        f"MobilePay: Filtering out {len(mobilepay_providers)} providers because currency is {currency.name}"
-                    )
-                providers = providers.filtered(lambda p: p.code != "mobilepay")
-
+            incompatible = providers.filtered(
+                lambda p: p.code == "mobilepay" and currency.name != p._mobilepay_currency_code()
+            )
+            providers -= incompatible
+            payment_utils.add_to_report(
+                report, incompatible, available=False,
+                reason=REPORT_REASONS_MAPPING["incompatible_currency"],
+            )
         return providers
 
     def action_test_connection(self):

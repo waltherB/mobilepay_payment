@@ -1,0 +1,1507 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* mobilepay_payment
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0-20261015\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-11 11:58+0000\n"
+"PO-Revision-Date: 2026-11-11 11:58+0000\n"
+"Last-Translator: MobilePay localization contributors\n"
+"Language-Team: Finnish\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid " (Gross Receipts Clearing)"
+msgstr " (Bruttomaksujen selvittely)"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid " (Gross Refunds Clearing)"
+msgstr " (Bruttopalautusten selvittely)"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid " (Merchant Fees)"
+msgstr " (Kauppiasmaksut)"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid " (Net Payout)"
+msgstr " (Nettotilitys)"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "%(icon)s <b>MobilePay Event: %(name)s</b>"
+msgstr "%(icon)s <b>MobilePay-tapahtuma: %(name)s</b>"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "<i class=\"fa fa-external-link\"/> Open Vipps MobilePay Portal"
+msgstr "<i class=\"fa fa-external-link\"/> Avaa Vipps MobilePay -portaali"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_inline_form
+msgid ""
+"<small class=\"form-text text-muted\">Enter your Vipps or MobilePay phone "
+"number with country code, or leave it blank. Local numbers use your billing "
+"country.</small>"
+msgstr ""
+"<small class=\"form-text text-muted\">Anna Vipps- tai MobilePay-"
+"puhelinnumerosi maatunnuksineen tai jätä kenttä tyhjäksi. Paikallisissa "
+"numeroissa käytetään laskutusmaatasi.</small>"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_inline_form
+msgid "<span class=\"text-muted\">Pay with Vipps or MobilePay</span>"
+msgstr "<span class=\"text-muted\">Maksa Vippsillä tai MobilePaylla</span>"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_settlement_view_form
+msgid "API sync traces or traceback details..."
+msgstr "API-synkronoinnin jäljet tai virheen jäljitystiedot..."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "API unregistration failed, but Odoo credentials were cleared."
+msgstr ""
+"Rekisteröinnin poisto API:n kautta epäonnistui, mutta Odoon tunnistetiedot "
+"tyhjennettiin."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_client_id
+msgid "Active MobilePay API Client ID (auto-selected based on state)"
+msgstr ""
+"Aktiivinen MobilePay API -asiakastunnus (valitaan automaattisesti tilan "
+"perusteella)"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_client_secret
+msgid "Active MobilePay API Client Secret (auto-selected based on state)"
+msgstr ""
+"Aktiivinen MobilePay API -asiakassalaisuus (valitaan automaattisesti tilan "
+"perusteella)"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_subscription_key
+msgid "Active MobilePay API Subscription Key (auto-selected based on state)"
+msgstr ""
+"Aktiivinen MobilePay API -tilausavain (valitaan automaattisesti tilan "
+"perusteella)"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_merchant_serial
+msgid "Active MobilePay Merchant Serial Number (auto-selected based on state)"
+msgstr ""
+"Aktiivinen MobilePay-kauppiaan sarjanumero (valitaan automaattisesti tilan "
+"perusteella)"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid ""
+"All MobilePay production credentials are required when provider is enabled: "
+"Production Client ID, Production Client Secret, Production Subscription Key,"
+" and Production Merchant Serial Number"
+msgstr ""
+"Kaikki MobilePayn tuotantotunnistetiedot vaaditaan, kun palveluntarjoaja on "
+"käytössä: tuotannon asiakastunnus, asiakassalaisuus, tilausavain ja "
+"kauppiaan sarjanumero"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_transaction__authorized_amount
+msgid "Amount authorized by MobilePay"
+msgstr "MobilePayn katevaraama summa"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_transaction__captured_amount
+msgid "Amount captured from authorized payment"
+msgstr "Katevaratusta maksusta veloitettu summa"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Amount: %(amount)s"
+msgstr "Summa: %(amount)s"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_settlement_view_form
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_transaction_form_mobilepay
+msgid "Amounts"
+msgstr "Summat"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid ""
+"Are you sure? This will remove ALL webhook registrations from "
+"MobilePay/Vipps for this MSN."
+msgstr ""
+"Oletko varma? Tämä poistaa KAIKKI webhook-rekisteröinnit "
+"MobilePaysta/Vippsistä tälle MSN:lle."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Attempted to unregister stored ID and cleared local state."
+msgstr ""
+"Tallennetun tunnuksen rekisteröinti yritettiin poistaa ja paikallinen tila "
+"tyhjennettiin."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid ""
+"Attempts to fetch an authentication token from the MobilePay API to verify "
+"credentials."
+msgstr ""
+"Yrittää hakea todennustunnuksen MobilePay API:sta tunnistetietojen "
+"tarkistamiseksi."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__authorized_amount
+msgid "Authorized Amount"
+msgstr "Katevarattu summa"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__auto_capture_delay
+msgid "Auto Capture Delay (hours)"
+msgstr "Automaattisen veloituksen viive (tuntia)"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Auto Capture Delay cannot be negative."
+msgstr "Automaattisen veloituksen viive ei voi olla negatiivinen."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_auto_post_settlements
+msgid "Auto-Post Settlements"
+msgstr "Kirjaa tilitykset automaattisesti"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__capture_mode__auto_delay
+msgid "Automatic Capture after Delay"
+msgstr "Automaattinen veloitus viiveen jälkeen"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid ""
+"Automatic MobilePay settlement requires the company currency. Foreign-"
+"currency payouts require manual accounting review."
+msgstr ""
+"Automaattinen MobilePay-tilitys edellyttää yrityksen valuuttaa. "
+"Valuuttamääräiset tilitykset vaativat manuaalisen kirjanpitotarkistuksen."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__capture_on_delivery
+msgid ""
+"Automatically capture authorized payments when the related delivery order is"
+" validated."
+msgstr ""
+"Veloita katevaratut maksut automaattisesti, kun niihin liittyvä "
+"toimitustilaus vahvistetaan."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__cancelled_amount
+msgid "Cancelled Amount"
+msgstr "Peruttu summa"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Capture Flow"
+msgstr "Veloitusprosessi"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__capture_on_delivery
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__capture_mode__delivery
+msgid "Capture on Delivery"
+msgstr "Veloita toimitettaessa"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__captured_amount
+msgid "Captured Amount"
+msgstr "Veloitettu summa"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Clears the Webhook ID and Secret from Odoo manually."
+msgstr "Tyhjentää webhook-tunnuksen ja -salaisuuden Odoosta manuaalisesti."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_client_id
+msgid "Client ID"
+msgstr "Asiakastunnus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_client_secret
+msgid "Client Secret"
+msgstr "Asiakassalaisuus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__code
+msgid "Code"
+msgstr "Koodi"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Configuration"
+msgstr "Asetukset"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Connection Successful"
+msgstr "Yhteys muodostettu"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Connection failed: %s"
+msgstr "Yhteys epäonnistui: %s"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__create_uid
+msgid "Created by"
+msgstr "Luonut"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__create_date
+msgid "Created on"
+msgstr "Luotu"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__currency_id
+msgid "Currency"
+msgstr "Valuutta"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_transaction__mobilepay_status
+msgid "Current payment status from MobilePay API"
+msgstr "Maksun nykyinen tila MobilePay API:sta"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__auto_capture_delay
+msgid ""
+"Delay in hours before automatic capture (when manual capture is disabled)."
+msgstr ""
+"Viive tunteina ennen automaattista veloitusta (kun manuaalinen veloitus on "
+"poissa käytöstä)."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_sales_unit_region__dk
+msgid "Denmark (DKK)"
+msgstr "Tanska (DKK)"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Diagnostic / Recovery Tools"
+msgstr "Diagnostiikka- ja palautustyökalut"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_logic_version
+msgid "Diagnostic version of the MobilePay integration logic."
+msgstr "MobilePay-integraatiologiikan diagnostiikkaversio."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_settlement_view_form
+msgid "Diagnostics / Log"
+msgstr "Diagnostiikka / loki"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__display_name
+msgid "Display Name"
+msgstr "Näyttönimi"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__mobilepay_settlement__state__draft
+msgid "Draft Entry"
+msgstr "Kirjausluonnos"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__capture_eligible
+msgid "Eligible for Capture"
+msgstr "Veloitettavissa"
+
+#. module: mobilepay_payment
+#. odoo-javascript
+#: code:addons/mobilepay_payment/static/src/js/payment_form.js:0
+msgid ""
+"Enter a valid phone number, preferably with its country code, or leave it "
+"blank."
+msgstr ""
+"Anna kelvollinen puhelinnumero, mieluiten maatunnuksineen, tai jätä kenttä "
+"tyhjäksi."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid ""
+"Enter the number of hours to wait before automatically capturing the payment"
+" when Automatic Capture after Delay is selected."
+msgstr ""
+"Anna odotusaika tunteina ennen maksun automaattista veloitusta, kun "
+"Automaattinen veloitus viiveen jälkeen on valittu."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__mobilepay_settlement__state__error
+msgid "Error"
+msgstr "Virhe"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Error unregistering webhook: %s"
+msgstr "Virhe webhookin rekisteröinnin poistossa: %s"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Event Log Fetched"
+msgstr "Tapahtumaloki haettu"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "FORCE CLEAN ALL WEBHOOKS"
+msgstr "PAKKOPOISTA KAIKKI WEBHOOKIT"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/mobilepay_auth_service.py:0
+msgid "Failed to acquire access token from MobilePay API: %s"
+msgstr "Käyttöoikeustunnuksen haku MobilePay API:sta epäonnistui: %s"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Failed to clean webhooks: %s"
+msgstr "Webhookien poisto epäonnistui: %s"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Failed to fetch webhooks: %s"
+msgstr "Webhookien haku epäonnistui: %s"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Failed to register webhook: %s"
+msgstr "Webhookin rekisteröinti epäonnistui: %s"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Failed to unregister webhook: %s"
+msgstr "Webhookin rekisteröinnin poisto epäonnistui: %s"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__fee_amount
+msgid "Fee Amount"
+msgstr "Kulujen määrä"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_transaction_form_mobilepay
+msgid "Fetch Event Log"
+msgstr "Hae tapahtumaloki"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_transaction_form_mobilepay
+msgid ""
+"Fetch the full payment event history from MobilePay and add it to the "
+"chatter"
+msgstr ""
+"Hae maksun koko tapahtumahistoria MobilePaysta ja lisää se viestiketjuun"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_sales_unit_region__fi
+msgid "Finland (EUR)"
+msgstr "Suomi (EUR)"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Found %s registered webhooks. Check Odoo logs for details."
+msgstr "Löytyi %s rekisteröityä webhookia. Katso lisätiedot Odoon lokeista."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__gross_amount
+msgid "Gross Amount"
+msgstr "Bruttosumma"
+
+#. module: mobilepay_payment
+#: model:ir.model,name:mobilepay_payment.model_ir_http
+msgid "HTTP Routing"
+msgstr "HTTP-reititys"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__id
+msgid "ID"
+msgstr "Tunnus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__mobilepay_idempotency_key
+msgid "Idempotency Key"
+msgstr "Idempotenssiavain"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_auto_post_settlements
+msgid ""
+"If enabled, payout journal entries will post and reconcile automatically. "
+"Otherwise, they will save as Draft."
+msgstr ""
+"Jos käytössä, tilityskirjaukset kirjataan ja täsmäytetään automaattisesti. "
+"Muussa tapauksessa ne tallennetaan luonnoksina."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/mobilepay_api_client.py:0
+msgid "Invalid JSON response from MobilePay API"
+msgstr "Virheellinen JSON-vastaus MobilePay API:sta"
+
+#. module: mobilepay_payment
+#. odoo-javascript
+#: code:addons/mobilepay_payment/static/src/js/payment_form.js:0
+msgid "Invalid phone number"
+msgstr "Virheellinen puhelinnumero"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/mobilepay_auth_service.py:0
+msgid "Invalid token response from MobilePay API."
+msgstr "Virheellinen tunnusvastaus MobilePay API:sta."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Invalid webhook registration response from MobilePay API"
+msgstr "Virheellinen webhook-rekisteröintivastaus MobilePay API:sta"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__journal_entry_id
+msgid "Journal Entry"
+msgstr "Kirjanpitovienti"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Key: %(key)s"
+msgstr "Avain: %(key)s"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__last_status_poll
+msgid "Last Status Poll"
+msgstr "Viimeisin tilakysely"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__write_uid
+msgid "Last Updated by"
+msgstr "Viimeksi päivittänyt"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__write_date
+msgid "Last Updated on"
+msgstr "Viimeksi päivitetty"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "List All Active Webhooks"
+msgstr "Listaa kaikki aktiiviset webhookit"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Local State Cleared"
+msgstr "Paikallinen tila tyhjennetty"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_logic_version
+msgid "Logic Version"
+msgstr "Logiikan versio"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Logs all webhooks registered on the MobilePay server for this MSN."
+msgstr ""
+"Kirjaa lokiin kaikki MobilePay-palvelimelle tälle MSN:lle rekisteröidyt "
+"webhookit."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__capture_mode__manual
+msgid "Manual Capture"
+msgstr "Manuaalinen veloitus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_merchant_serial
+msgid "Merchant Serial Number"
+msgstr "Kauppiaan sarjanumero"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Missing MobilePay API Reference for cancellation."
+msgstr "MobilePay API -viite puuttuu peruutusta varten."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Missing MobilePay API Reference for capture."
+msgstr "MobilePay API -viite puuttuu veloitusta varten."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Missing MobilePay API Reference for refund."
+msgstr "MobilePay API -viite puuttuu palautusta varten."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__code__mobilepay
+msgid "MobilePay"
+msgstr "MobilePay"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/mobilepay_auth_service.py:0
+msgid ""
+"MobilePay %s credentials are not configured properly. Please fill in the %s "
+"Client ID and Client Secret fields in the payment provider configuration."
+msgstr ""
+"MobilePayn %s-tunnistetietoja ei ole määritetty oikein. Täytä "
+"%s-asiakastunnus- ja asiakassalaisuuskentät maksupalveluntarjoajan "
+"asetuksissa."
+
+#. module: mobilepay_payment
+#: model:ir.model,name:mobilepay_payment.model_mobilepay_api_client
+msgid "MobilePay API Client"
+msgstr "MobilePay API -asiakas"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__mobilepay_api_reference
+msgid "MobilePay API Reference"
+msgstr "MobilePay API -viite"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/mobilepay_api_client.py:0
+msgid "MobilePay API error (HTTP %s): %s"
+msgstr "MobilePay API -virhe (HTTP %s): %s"
+
+#. module: mobilepay_payment
+#: model:ir.model,name:mobilepay_payment.model_mobilepay_auth_service
+msgid "MobilePay Authentication Service"
+msgstr "MobilePay-todennuspalvelu"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_clearing_account_id
+msgid "MobilePay Clearing Account"
+msgstr "MobilePay-selvittelytili"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_transaction_form_mobilepay
+msgid "MobilePay Details"
+msgstr "MobilePay-tiedot"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_fee_account_id
+msgid "MobilePay Fee Account"
+msgstr "MobilePay-kulutili"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_fee_tax_id
+msgid "MobilePay Fee Tax"
+msgstr "MobilePay-kulujen vero"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_journal_id
+msgid "MobilePay Journal"
+msgstr "MobilePay-päiväkirja"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_inline_form
+msgid "MobilePay Logo"
+msgstr "MobilePay-logo"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__mobilepay_payment_id
+msgid "MobilePay Payment ID"
+msgstr "MobilePay-maksutunnus"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "MobilePay Payout Settlement %s"
+msgstr "MobilePay-tilitys %s"
+
+#. module: mobilepay_payment
+#: model:ir.model,name:mobilepay_payment.model_mobilepay_settlement
+msgid "MobilePay Payout Settlement Tracker"
+msgstr "MobilePay-tilitysten seuranta"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_prod_client_id
+msgid "MobilePay Production API Client ID"
+msgstr "MobilePay API:n tuotannon asiakastunnus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_prod_client_secret
+msgid "MobilePay Production API Client Secret (encrypted)"
+msgstr "MobilePay API:n tuotannon asiakassalaisuus (salattu)"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_prod_subscription_key
+msgid "MobilePay Production API Subscription Key (encrypted)"
+msgstr "MobilePay API:n tuotannon tilausavain (salattu)"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_prod_merchant_serial
+msgid "MobilePay Production Merchant Serial Number"
+msgstr "MobilePayn tuotannon kauppiaan sarjanumero"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_settlement_view_form
+msgid "MobilePay Settlement"
+msgstr "MobilePay-tilitys"
+
+#. module: mobilepay_payment
+#: model:ir.actions.act_window,name:mobilepay_payment.action_mobilepay_settlement
+#: model:ir.ui.menu,name:mobilepay_payment.menu_mobilepay_settlements
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_settlement_view_tree
+msgid "MobilePay Settlements"
+msgstr "MobilePay-tilitykset"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__mobilepay_status
+msgid "MobilePay Status"
+msgstr "MobilePay-tila"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_test_client_id
+msgid "MobilePay Test API Client ID"
+msgstr "MobilePay API:n testiasiakastunnus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_test_client_secret
+msgid "MobilePay Test API Client Secret (encrypted)"
+msgstr "MobilePay API:n testiasiakassalaisuus (salattu)"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_test_subscription_key
+msgid "MobilePay Test API Subscription Key (encrypted)"
+msgstr "MobilePay API:n testitilausavain (salattu)"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_test_merchant_serial
+msgid "MobilePay Test Merchant Serial Number"
+msgstr "MobilePayn testikauppiaan sarjanumero"
+
+#. module: mobilepay_payment
+#: model:ir.actions.act_window,name:mobilepay_payment.action_mobilepay_transactions
+#: model:ir.ui.menu,name:mobilepay_payment.menu_mobilepay_transactions
+msgid "MobilePay Transactions"
+msgstr "MobilePay-maksutapahtumat"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "MobilePay can only cancel the entire remaining reservation."
+msgstr "MobilePay voi perua vain koko jäljellä olevan katevarauksen."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "MobilePay delayed capture failed: %s"
+msgstr "Viivästetty MobilePay-veloitus epäonnistui: %s"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "MobilePay did not confirm cancellation of the pending payment."
+msgstr "MobilePay ei vahvistanut odottavan maksun peruutusta."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid ""
+"MobilePay did not confirm the requested %(operation)s amount. Check the "
+"payment in the merchant portal before retrying."
+msgstr ""
+"MobilePay ei vahvistanut pyydettyä summaa toiminnolle %(operation)s. "
+"Tarkista maksu kauppiasportaalista ennen uutta yritystä."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/sale_order.py:0
+msgid ""
+"MobilePay payment authorization automatically cancelled because sale order "
+"%(order)s was cancelled."
+msgstr ""
+"MobilePay-maksun katevaraus peruttiin automaattisesti, koska myyntitilaus "
+"%(order)s peruttiin."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid ""
+"MobilePay payment authorization automatically cancelled because the related "
+"sale order was cancelled."
+msgstr ""
+"MobilePay-maksun katevaraus peruttiin automaattisesti, koska siihen liittyvä"
+" myyntitilaus peruttiin."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "MobilePay payment events have been fetched and added to the chatter."
+msgstr "MobilePay-maksutapahtumat on haettu ja lisätty viestiketjuun."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid ""
+"MobilePay payment reservation expired after %(days)d days and was "
+"automatically cancelled to release the customer's funds."
+msgstr ""
+"MobilePay-maksun katevaraus vanheni %(days)d päivän jälkeen ja peruttiin "
+"automaattisesti asiakkaan varojen vapauttamiseksi."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid ""
+"MobilePay requires a reachable HTTPS website URL for payment returns. "
+"Configure HTTPS and the website domain/base URL before starting a payment. "
+"Changing http to https without a TLS endpoint does not work."
+msgstr ""
+"MobilePay edellyttää saavutettavaa HTTPS-verkkosivuston osoitetta maksun "
+"paluuta varten. Määritä HTTPS ja verkkosivuston verkkotunnus/perus-URL ennen"
+" maksun aloittamista. Pelkkä http:n muuttaminen https:ksi ilman TLS-"
+"päätepistettä ei toimi."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "MobilePay requires an HTTPS webhook URL. Current web.base.url: %s"
+msgstr ""
+"MobilePay edellyttää HTTPS-webhook-osoitetta. Nykyinen web.base.url: %s"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid ""
+"MobilePay webhook registration requires a valid web.base.url with HTTPS. "
+"Current value is invalid: %s"
+msgstr ""
+"MobilePay-webhookin rekisteröinti edellyttää kelvollista HTTPS-muotoista "
+"web.base.url-arvoa. Nykyinen arvo on virheellinen: %s"
+
+#. module: mobilepay_payment
+#: model:ir.actions.server,name:mobilepay_payment.ir_cron_mobilepay_cancel_on_order_cancel_ir_actions_server
+msgid "MobilePay: Cancel Authorized Payments for Cancelled Orders"
+msgstr "MobilePay: Peru peruttujen tilausten katevaratut maksut"
+
+#. module: mobilepay_payment
+#: model:ir.actions.server,name:mobilepay_payment.ir_cron_mobilepay_auto_capture_ir_actions_server
+msgid "MobilePay: Capture After Delay"
+msgstr "MobilePay: Veloita viiveen jälkeen"
+
+#. module: mobilepay_payment
+#: model:ir.actions.server,name:mobilepay_payment.ir_cron_mobilepay_reconcile_reports_ir_actions_server
+msgid "MobilePay: Fetch Settlements and Reconcile Fees (CE)"
+msgstr "MobilePay: Hae tilitykset ja täsmäytä kulut (CE)"
+
+#. module: mobilepay_payment
+#: model:ir.actions.server,name:mobilepay_payment.ir_cron_mobilepay_capture_expiry_ir_actions_server
+msgid "MobilePay: Monitor Capture Expiry"
+msgstr "MobilePay: Seuraa veloituksen määräaikaa"
+
+#. module: mobilepay_payment
+#: model:ir.actions.server,name:mobilepay_payment.ir_cron_mobilepay_status_poll_ir_actions_server
+msgid "MobilePay: Poll Payment Status"
+msgstr "MobilePay: Kysy maksun tila"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_sales_unit_region
+msgid ""
+"Must match the region registered for these merchant credentials, not the "
+"customer's country. Greenland uses Denmark. Swedish customers can pay cross-"
+"border; SEK is not supported by this wallet integration."
+msgstr ""
+"On vastattava näille kauppiaan tunnistetiedoille rekisteröityä aluetta, ei "
+"asiakkaan maata. Grönlanti käyttää Tanskaa. Ruotsalaiset asiakkaat voivat "
+"maksaa rajojen yli; tämä lompakkointegraatio ei tue SEK-valuuttaa."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__net_amount
+msgid "Net Payout Amount"
+msgstr "Nettotilityksen summa"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/mobilepay_api_client.py:0
+#: code:addons/mobilepay_payment/models/mobilepay_auth_service.py:0
+msgid "Network error while connecting to MobilePay API: %s"
+msgstr "Verkkovirhe yhdistettäessä MobilePay API:in: %s"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "No MobilePay API Reference found on this transaction."
+msgstr "Tästä maksutapahtumasta ei löytynyt MobilePay API -viitettä."
+
+#. module: mobilepay_payment
+#: model_terms:ir.actions.act_window,help:mobilepay_payment.action_mobilepay_settlement
+msgid "No MobilePay settlements found"
+msgstr "MobilePay-tilityksiä ei löytynyt"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "No Webhook Registered"
+msgstr "Ei rekisteröityä webhookia"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "No webhook ID available for connectivity test"
+msgstr "Webhook-tunnusta ei ole saatavilla yhteystestiä varten"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "No webhook ID stored to unregister."
+msgstr "Webhook-tunnusta ei ole tallennettu rekisteröinnin poistoa varten."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "No webhook is currently registered for this provider."
+msgstr ""
+"Tälle palveluntarjoajalle ei ole tällä hetkellä rekisteröity webhookia."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_sales_unit_region__no
+msgid "Norway (NOK)"
+msgstr "Norja (NOK)"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__note
+msgid "Notes / Traceback"
+msgstr "Muistiinpanot / virheen jäljitys"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Only confirmed transactions can be refunded."
+msgstr "Vain vahvistetut maksutapahtumat voidaan palauttaa."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Only open MobilePay authorizations can be cancelled."
+msgstr "Vain avoimet MobilePay-katevaraukset voidaan perua."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_fee_tax_id
+msgid "Optional tax/VAT code to apply to the transaction fee expense line."
+msgstr "Valinnainen vero-/ALV-koodi maksutapahtumakulujen kuluriville."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Payment Flow Settings"
+msgstr "Maksuprosessin asetukset"
+
+#. module: mobilepay_payment
+#: model:ir.model,name:mobilepay_payment.model_payment_provider
+msgid "Payment Provider"
+msgstr "Maksupalveluntarjoaja"
+
+#. module: mobilepay_payment
+#: model:ir.model,name:mobilepay_payment.model_payment_transaction
+msgid "Payment Transaction"
+msgstr "Maksutapahtuma"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Payment initiation failed: %s"
+msgstr "Maksun aloitus epäonnistui: %s"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__payout_id
+msgid "Payout ID"
+msgstr "Tilitystunnus"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid ""
+"Payout posted, but clearing lines are not fully reconciled. Post the "
+"matching payment transactions and retry synchronization."
+msgstr ""
+"Tilitys on kirjattu, mutta selvittelyrivejä ei ole täsmäytetty kokonaan. "
+"Kirjaa vastaavat maksutapahtumat ja yritä synkronointia uudelleen."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_inline_form
+msgid "Phone Number"
+msgstr "Puhelinnumero"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_inline_form
+msgid "Phone number with country code"
+msgstr "Puhelinnumero maatunnuksineen"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/controllers/payment_portal.py:0
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid ""
+"Please enter a valid Vipps or MobilePay phone number with country code."
+msgstr "Anna kelvollinen Vipps- tai MobilePay-puhelinnumero maatunnuksineen."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__mobilepay_settlement__state__reconciled
+msgid "Posted & Reconciled"
+msgstr "Kirjattu ja täsmäytetty"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_prod_client_id
+msgid "Production Client ID"
+msgstr "Tuotannon asiakastunnus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_prod_client_secret
+msgid "Production Client Secret"
+msgstr "Tuotannon asiakassalaisuus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_prod_client_secret_encrypted
+msgid "Production Client Secret (Encrypted)"
+msgstr "Tuotannon asiakassalaisuus (salattu)"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Production Environment Credentials"
+msgstr "Tuotantoympäristön tunnistetiedot"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_prod_merchant_serial
+msgid "Production Merchant Serial Number"
+msgstr "Tuotannon kauppiaan sarjanumero"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_prod_subscription_key
+msgid "Production Subscription Key"
+msgstr "Tuotannon tilausavain"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_prod_subscription_key_encrypted
+msgid "Production Subscription Key (Encrypted)"
+msgstr "Tuotannon tilausavain (salattu)"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Refund the individual captured transactions, not their source."
+msgstr ""
+"Palauta yksittäiset veloitetut maksutapahtumat, älä niiden lähdetapahtumaa."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__refunded_amount
+msgid "Refunded Amount"
+msgstr "Palautettu summa"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Register Webhook"
+msgstr "Rekisteröi webhook"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_webhook_id
+msgid "Registered webhook ID from MobilePay"
+msgstr "MobilePayn rekisteröity webhook-tunnus"
+
+#. module: mobilepay_payment
+#: model:ir.model,name:mobilepay_payment.model_sale_order
+msgid "Sales Order"
+msgstr "Myyntitilaus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_sales_unit_region
+msgid "Sales Unit Region"
+msgstr "Myyntiyksikön alue"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__capture_mode
+msgid "Select how MobilePay should capture authorized payments."
+msgstr "Valitse, miten MobilePay veloittaa katevaratut maksut."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid ""
+"Select how MobilePay should capture authorized payments: manually, "
+"automatically on delivery, or automatically after a delay."
+msgstr ""
+"Valitse, miten MobilePay veloittaa katevaratut maksut: manuaalisesti, "
+"automaattisesti toimitettaessa tai automaattisesti viiveen jälkeen."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Settlement & Fees Reconciliation"
+msgstr "Tilitys ja kulujen täsmäytys"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__settlement_date
+msgid "Settlement Date"
+msgstr "Tilityspäivä"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_settlement_view_form
+msgid "Settlement Info"
+msgstr "Tilitystiedot"
+
+#. module: mobilepay_payment
+#: model_terms:ir.actions.act_window,help:mobilepay_payment.action_mobilepay_settlement
+msgid ""
+"Settlement reports are periodically fetched from the MobilePay API and "
+"automatically reconciled."
+msgstr ""
+"Tilitysraportit haetaan säännöllisesti MobilePay API:sta ja täsmäytetään "
+"automaattisesti."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__show_mobilepay_fields
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__show_mobilepay_fields
+msgid "Show Mobilepay Fields"
+msgstr "Näytä MobilePay-kentät"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_mobilepay_settlement__state
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_transaction_form_mobilepay
+msgid "Status"
+msgstr "Tila"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_subscription_key
+msgid "Subscription Key"
+msgstr "Tilausavain"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid ""
+"Successfully connected to the MobilePay API! Your credentials are valid."
+msgstr ""
+"Yhteys MobilePay API:in muodostettu! Tunnistetietosi ovat kelvolliset."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Successfully unregistered %s webhooks."
+msgstr "%s webhookin rekisteröinti poistettu."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "System base URL is not configured (web.base.url)."
+msgstr "Järjestelmän perus-URL-osoitetta ei ole määritetty (web.base.url)."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__show_mobilepay_fields
+msgid "Technical field to control visibility of MobilePay specific fields."
+msgstr "Tekninen kenttä MobilePay-kohtaisten kenttien näkyvyyden hallintaan."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Test API Connection"
+msgstr "Testaa API-yhteys"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_test_client_id
+msgid "Test Client ID"
+msgstr "Testiasiakastunnus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_test_client_secret
+msgid "Test Client Secret"
+msgstr "Testiasiakassalaisuus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_test_client_secret_encrypted
+msgid "Test Client Secret (Encrypted)"
+msgstr "Testiasiakassalaisuus (salattu)"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Test Environment Credentials"
+msgstr "Testiympäristön tunnistetiedot"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_test_merchant_serial
+msgid "Test Merchant Serial Number"
+msgstr "Testikauppiaan sarjanumero"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_test_subscription_key
+msgid "Test Subscription Key"
+msgstr "Testitilausavain"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_test_subscription_key_encrypted
+msgid "Test Subscription Key (Encrypted)"
+msgstr "Testitilausavain (salattu)"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "The 6-digit MSN (Merchant Serial Number) for the production unit."
+msgstr "Tuotantoyksikön 6-numeroinen MSN (kauppiaan sarjanumero)."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "The 6-digit MSN (Merchant Serial Number) for the test unit."
+msgstr "Testiyksikön 6-numeroinen MSN (kauppiaan sarjanumero)."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "The Client ID found in the Vipps Portal under Developer -> API Keys."
+msgstr ""
+"Asiakastunnus, joka löytyy Vipps-portaalin kohdasta Developer -> API Keys."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "The Client Secret found in the Vipps Portal."
+msgstr "Vipps-portaalista löytyvä asiakassalaisuus."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_journal_id
+msgid ""
+"The Misc/Bank journal where payout entries and fee write-offs will be "
+"posted."
+msgstr ""
+"Sekalainen-/pankkipäiväkirja, johon tilityskirjaukset ja kulujen "
+"poistokirjaukset kirjataan."
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "The Ocp-Apim-Subscription-Key for the API product."
+msgstr "API-tuotteen Ocp-Apim-Subscription-Key."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_mobilepay_settlement__journal_entry_id
+msgid "The Odoo Journal Entry generated for this payout reconciliation."
+msgstr "Tätä tilityksen täsmäytystä varten luotu Odoo-kirjanpitovienti."
+
+#. module: mobilepay_payment
+#: model:ir.model.constraint,message:mobilepay_payment.constraint_mobilepay_settlement_payout_id_unique
+msgid "The Payout ID must be unique. This settlement has already been logged."
+msgstr "Tilitystunnuksen on oltava yksilöllinen. Tämä tilitys on jo kirjattu."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "The amount must be positive and cannot exceed the remaining amount."
+msgstr ""
+"Summan on oltava positiivinen, eikä se saa ylittää jäljellä olevaa summaa."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_fee_account_id
+msgid "The expense account where transaction fees will be recorded."
+msgstr "Kulutili, jolle maksutapahtumakulut kirjataan."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_mobilepay_settlement__net_amount
+msgid ""
+"The net cash amount transferred to the merchant's bank account (Gross - "
+"Fees)."
+msgstr "Kauppiaan pankkitilille siirrettävä nettosumma (brutto − kulut)."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid ""
+"The payment currency must be %(currency)s for the configured sales unit "
+"region."
+msgstr ""
+"Maksuvaluutan on oltava %(currency)s määritetylle myyntiyksikön alueelle."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid ""
+"The selected MobilePay Journal (%s) does not have a default account "
+"configured."
+msgstr "Valitulle MobilePay-päiväkirjalle (%s) ei ole määritetty oletustiliä."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid ""
+"The settlement journal entry does not match the reported net payout. Review "
+"fee taxes and payout amounts before posting."
+msgstr ""
+"Tilityksen kirjanpitovienti ei vastaa ilmoitettua nettotilitystä. Tarkista "
+"kulujen verot ja tilityssummat ennen kirjaamista."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__code
+msgid "The technical code of this payment provider."
+msgstr "Tämän maksupalveluntarjoajan tekninen koodi."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_clearing_account_id
+msgid ""
+"The transit/clearing asset account where gross customer payments are "
+"captured in real-time."
+msgstr ""
+"Varojen siirto-/selvittelytili, jolle asiakkaiden bruttomaksut kirjataan "
+"reaaliajassa."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_transaction__mobilepay_api_reference
+msgid "The unique reference used in the MobilePay API calls"
+msgstr "Yksilöllinen viite, jota käytetään MobilePay API -kutsuissa"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "This is not a MobilePay transaction."
+msgstr "Tämä ei ole MobilePay-maksutapahtuma."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "This payout already belongs to a different journal."
+msgstr "Tämä tilitys kuuluu jo toiseen päiväkirjaan."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "This transaction is not eligible for capture."
+msgstr "Tätä maksutapahtumaa ei voi veloittaa."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid "Time: %(timestamp)s"
+msgstr "Aika: %(timestamp)s"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_transaction__last_status_poll
+msgid "Timestamp of last status check with MobilePay API"
+msgstr "Viimeisimmän MobilePay API -tilatarkistuksen aikaleima"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_transaction__refunded_amount
+msgid "Total amount refunded for this transaction"
+msgstr "Tämän maksutapahtuman palautettu kokonaissumma"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_mobilepay_settlement__fee_amount
+msgid "Total commissions and transaction fees deducted."
+msgstr "Vähennetyt palkkiot ja maksutapahtumakulut yhteensä."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_mobilepay_settlement__gross_amount
+msgid "Total customer payments processed in this batch."
+msgstr "Tässä erässä käsitellyt asiakasmaksut yhteensä."
+
+#. module: mobilepay_payment
+#: model:ir.model,name:mobilepay_payment.model_stock_picking
+msgid "Transfer"
+msgstr "Siirto"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_transaction__mobilepay_idempotency_key
+msgid "Unique key to prevent duplicate payments"
+msgstr "Yksilöllinen avain päällekkäisten maksujen estämiseksi"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_transaction__mobilepay_payment_id
+msgid "Unique payment identifier from MobilePay API"
+msgstr "Yksilöllinen maksutunnus MobilePay API:sta"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_mobilepay_settlement__payout_id
+msgid "Unique payout/settlement transfer reference from MobilePay/Vipps API."
+msgstr "Yksilöllinen tilityksen siirtoviite MobilePay/Vipps API:sta."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Unknown MobilePay settlement currency: %s"
+msgstr "Tuntematon MobilePay-tilityksen valuutta: %s"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Unregister Webhook"
+msgstr "Poista webhookin rekisteröinti"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid ""
+"Use these tools to verify API connectivity and manage webhook registrations."
+msgstr ""
+"Näillä työkaluilla voit tarkistaa API-yhteyden ja hallita webhook-"
+"rekisteröintejä."
+
+#. module: mobilepay_payment
+#: model_terms:ir.actions.act_window,help:mobilepay_payment.action_mobilepay_transactions
+msgid "View and manage all MobilePay payment transactions"
+msgstr "Näytä ja hallitse kaikkia MobilePay-maksutapahtumia"
+
+#. module: mobilepay_payment
+#: model:payment.method,name:mobilepay_payment.payment_method_mobilepay
+#: model:payment.provider,name:mobilepay_payment.payment_provider_mobilepay
+msgid "Vipps / MobilePay"
+msgstr "Vipps / MobilePay"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Webhook Configuration"
+msgstr "Webhook-asetukset"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Webhook Forced Out"
+msgstr "Webhook pakkopoistettu"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_webhook_id
+msgid "Webhook ID"
+msgstr "Webhook-tunnus"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Webhook List"
+msgstr "Webhook-luettelo"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Webhook Registration Failed"
+msgstr "Webhookin rekisteröinti epäonnistui"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Webhook Registration Successful"
+msgstr "Webhookin rekisteröinti onnistui"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_webhook_secret
+msgid "Webhook Secret"
+msgstr "Webhook-salaisuus"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_webhook_secret_encrypted
+msgid "Webhook Secret (Encrypted)"
+msgstr "Webhook-salaisuus (salattu)"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Webhook Unregistered"
+msgstr "Webhookin rekisteröinti poistettu"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Webhook Unregistration Failed"
+msgstr "Webhookin rekisteröinnin poisto epäonnistui"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Webhook has been registered successfully with MobilePay. ID: %s"
+msgstr "Webhook on rekisteröity MobilePayhin. Tunnus: %s"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Webhook has been successfully unregistered from MobilePay."
+msgstr "Webhookin rekisteröinti on poistettu MobilePaysta."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_webhook_secret
+msgid "Webhook signature verification secret (encrypted)"
+msgstr "Webhook-allekirjoituksen vahvistussalaisuus (salattu)"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Webhooks Cleaned"
+msgstr "Webhookit poistettu"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_transaction__capture_eligible
+msgid "Whether this transaction can be manually captured"
+msgstr "Voidaanko tämä maksutapahtuma veloittaa manuaalisesti"
+
+#. module: mobilepay_payment
+#: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
+msgid "Wipe Local Webhook Credentials"
+msgstr "Tyhjennä paikalliset webhook-tunnistetiedot"
+
+#. module: mobilepay_payment
+#: model_terms:payment.provider,auth_msg:mobilepay_payment.payment_provider_mobilepay
+msgid "Your payment has been authorized."
+msgstr "Maksusi on katevarattu."
+
+#. module: mobilepay_payment
+#: model_terms:payment.provider,cancel_msg:mobilepay_payment.payment_provider_mobilepay
+msgid "Your payment has been cancelled."
+msgstr "Maksusi on peruttu."
+
+#. module: mobilepay_payment
+#: model_terms:payment.provider,pending_msg:mobilepay_payment.payment_provider_mobilepay
+msgid ""
+"Your payment has been successfully processed but is waiting for approval."
+msgstr "Maksusi on käsitelty onnistuneesti, mutta se odottaa hyväksyntää."
+
+#. module: mobilepay_payment
+#: model_terms:payment.provider,done_msg:mobilepay_payment.payment_provider_mobilepay
+msgid "Your payment has been successfully processed."
+msgstr "Maksusi on käsitelty onnistuneesti."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/sale_order.py:0
+msgid ""
+"⚠️ Failed to automatically cancel MobilePay payment %(ref)s after sale order %(order)s was cancelled: %(error)s\n"
+"Please cancel this payment manually in the MobilePay portal to release the customer's reserved funds."
+msgstr ""
+"⚠️ MobilePay-maksun %(ref)s automaattinen peruutus epäonnistui myyntitilauksen %(order)s peruutuksen jälkeen: %(error)s\n"
+"Peru maksu manuaalisesti MobilePay-portaalissa asiakkaan varattujen varojen vapauttamiseksi."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/stock_picking.py:0
+msgid ""
+"⚠️ MobilePay auto-capture failed for transaction %(ref)s: %(error)s\n"
+"Please capture the payment manually or contact support."
+msgstr ""
+"⚠️ Automaattinen MobilePay-veloitus epäonnistui maksutapahtumalle %(ref)s: %(error)s\n"
+"Veloita maksu manuaalisesti tai ota yhteyttä tukeen."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_transaction.py:0
+msgid ""
+"⚠️ MobilePay payment %(ref)s has been authorized for %(days)d days and is "
+"approaching the capture deadline (14 days). Please capture or cancel this "
+"payment soon."
+msgstr ""
+"⚠️ MobilePay-maksu %(ref)s on ollut katevarattuna %(days)d päivää ja "
+"lähestyy veloituksen määräaikaa (14 päivää). Veloita tai peru maksu pian."

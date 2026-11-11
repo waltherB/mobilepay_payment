@@ -73,6 +73,34 @@ class TestMobilePayHttp(HttpCase):
         self.assertEqual(tx.partner_id, self.partner)
         self.assertEqual(self.payload["customer"]["phoneNumber"], "4512345678")
 
+    def test_nordic_local_phone_reaches_api_without_danish_rewrite(self):
+        for region, currency in (("DK", "DKK"), ("FI", "EUR"), ("NO", "NOK")):
+            self.provider.mobilepay_sales_unit_region = region
+            currency_record = self.env.ref(f"base.{currency}")
+            currency_record.active = True
+            for country, phone, expected in (
+                ("no", "91234567", "4791234567"),
+                ("fi", "0401234567", "358401234567"),
+                ("se", "0701234567", "46701234567"),
+                ("gl", "123456", "299123456"),
+                ("fo", "12345678", "4512345678"),
+            ):
+                with self.subTest(region=region, customer=country):
+                    self.partner.country_id = self.env.ref(f"base.{country}")
+                    params = self._params(currency_id=currency_record.id, mobilepay_phone=phone)
+                    params["access_token"] = hmac_tool(
+                        self.env(su=True), "generate_access_token",
+                        f"{self.partner.id}|100.0|{currency_record.id}",
+                    )
+                    with patch.object(type(self.client), "create_payment",
+                                      side_effect=self._create_response), patch.object(
+                        type(self.provider), "get_base_url", return_value="https://sandbox.example.com"
+                    ):
+                        result = self._json_request("/payment/transaction", params)
+                    self.assertIn("result", result, result)
+                    self.assertEqual(self.payload["customer"]["phoneNumber"], expected)
+                    self.assertEqual(self.payload["amount"], {"currency": currency, "value": 10000})
+
     def test_production_phone_payload_uses_edited_value_without_changing_partner(self):
         self.provider.write({
             "mobilepay_prod_client_id": "synthetic",

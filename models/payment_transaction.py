@@ -170,59 +170,30 @@ class PaymentTransaction(models.Model):
         return str(uuid.uuid4())
 
     def _format_phone_number_v3(self, phone_number):
-        """
-        Format phone number for MobilePay V3 API (digits only, 9-15 chars).
-        Supports Denmark (+45), Norway (+47), and Finland (+358).
-
-        Args:
-            phone_number (str): Phone number in various formats
-
-        Returns:
-            str: Phone number in digits only format or None if invalid
-        """
+        """Normalize international or customer-country local numbers for the API."""
         if not phone_number:
             return None
-        if not isinstance(phone_number, str) or not re.fullmatch(r"[+\d\s().-]+", phone_number):
+        if not isinstance(phone_number, str) or not re.fullmatch(r"\+?[0-9\s().-]+", phone_number.strip()):
             return None
 
-        # Remove all non-digit characters
         digits_only = re.sub(r"\D", "", phone_number)
-
-        # Detect target country prefix from transaction state
-        # Priority: 1. Partner country, 2. Company country, 3. Default to Denmark (DK / 45)
-        country_code = "DK"
-        if self.partner_country_id:
-            country_code = self.partner_country_id.code
-        elif self.company_id and self.company_id.country_id:
-            country_code = self.company_id.country_id.code
-
-        # If it starts with 00, strip the 00
+        international = phone_number.strip().startswith("+") or digits_only.startswith("00")
         if digits_only.startswith("00"):
             digits_only = digits_only[2:]
 
-        # Handle formatting based on country
-        if country_code == "DK":
-            if len(digits_only) == 8:
-                return f"45{digits_only}"
-            elif digits_only.startswith("45") and len(digits_only) == 10:
-                return digits_only
-        elif country_code == "NO":
-            if len(digits_only) == 8:
-                return f"47{digits_only}"
-            elif digits_only.startswith("47") and len(digits_only) == 10:
-                return digits_only
-        elif country_code == "FI":
-            # Finnish local numbers usually start with 0
-            if digits_only.startswith("0") and 5 <= len(digits_only) <= 11:
-                return f"358{digits_only[1:]}"
-            elif digits_only.startswith("358") and 8 <= len(digits_only) <= 13:
-                return digits_only
-
-        # Fallback generic validation (9-15 digits) as per API regex ^\d{9,15}$
-        if 9 <= len(digits_only) <= 15:
-            return digits_only
-
-        return None
+        if not international:
+            country = (
+                self.partner_country_id.code
+                or self.company_id.country_id.code
+                or self.provider_id.mobilepay_sales_unit_region
+            )
+            if country in ("DK", "FO", "NO") and len(digits_only) == 8:
+                digits_only = ("47" if country == "NO" else "45") + digits_only
+            elif country in ("FI", "SE") and digits_only.startswith("0"):
+                digits_only = ("358" if country == "FI" else "46") + digits_only[1:]
+            elif country == "GL" and len(digits_only) == 6:
+                digits_only = "299" + digits_only
+        return digits_only if re.fullmatch(r"[1-9][0-9]{8,14}", digits_only) else None
 
     def _send_payment_request(self):
         """
@@ -238,6 +209,12 @@ class PaymentTransaction(models.Model):
 
         if self.provider_id.code != "mobilepay":
             return super()._send_payment_request()
+
+        if self.currency_id.name != self.provider_id._mobilepay_currency_code():
+            raise UserError(_(
+                "The payment currency must be %(currency)s for the configured sales unit region.",
+                currency=self.provider_id._mobilepay_currency_code(),
+            ))
 
         # Prepare payment data according to ePayment V3 API specifications
         # Ensure reference is consistent (min 8 chars) between payload and returnUrl
@@ -261,7 +238,7 @@ class PaymentTransaction(models.Model):
 
         customer_phone = self._format_phone_number_v3(raw_phone) if raw_phone else None
         if raw_phone and not customer_phone:
-            raise UserError(_("Please enter a valid MobilePay phone number."))
+            raise UserError(_("Please enter a valid Vipps or MobilePay phone number with country code."))
 
         # Rewriting the scheme cannot provide TLS for an HTTP-only deployment.
         base_url = self.provider_id.get_base_url().rstrip("/")

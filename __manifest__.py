@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 {
     "name": "MobilePay (Vipps) Payment Provider",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.0",
     "category": "Accounting/Payment Providers",
-    "summary": "Payment Provider: MobilePay (Vipps) for Danish market",
+    "summary": "Vipps MobilePay payments for Nordic customers",
     "description": """
 MobilePay Payment Provider for Odoo 18
 
@@ -12,7 +12,8 @@ Development integration with the Vipps MobilePay ePayment API:
 - Credential management with Fernet encryption
 - Webhook, status polling, delivery capture and settlement integration code
 - Diagnostic tools for API connection and webhook management
-- Seeded payment method for Denmark and DKK
+- Nordic customers, Danish/DKK, Finnish/EUR and Norwegian/NOK sales units
+- Danish, Finnish, Norwegian Bokmal and Swedish translations
 
 Void/cancel, refund children, delayed capture and checkout phone transport have
 local regression coverage. Odoo 18 Community installation, update, browser,
@@ -22,7 +23,7 @@ legacy settlement API adapter still requires migration to the published API.
 Enterprise has not been tested.
 See README.md and MIGRATION-18.0.md for validation results and limitations.
     """,
-    "author": "Wather",
+    "author": "Walther",
     "website": "Not yet",
     "license": "LGPL-3",
     "depends": [

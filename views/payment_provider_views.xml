@@ -76,6 +76,7 @@
                                     help="Clears the Webhook ID and Secret from Odoo manually."/>
                         </group>
                         <group string="Configuration" name="mobilepay_config">
+                            <field name="mobilepay_sales_unit_region"/>
                             <div colspan="2" class="mb-3">
                                 <a href="https://portal.vippsmobilepay.com/" target="_blank" class="btn btn-link px-0">
                                     <i class="fa fa-external-link"/> Open Vipps MobilePay Portal
