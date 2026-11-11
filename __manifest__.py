@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "MobilePay (Vipps) Payment Provider",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.3.0",
     "category": "Accounting/Payment Providers",
     "summary": "Vipps MobilePay payments for Nordic customers",
     "description": """

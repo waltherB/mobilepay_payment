@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0-20261015\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 11:58+0000\n"
-"PO-Revision-Date: 2026-11-11 11:58+0000\n"
+"POT-Creation-Date: 2026-11-11 12:15+0000\n"
+"PO-Revision-Date: 2026-11-11 12:15+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -56,11 +56,6 @@ msgid ""
 "<small class=\"form-text text-muted\">Enter your Vipps or MobilePay phone "
 "number with country code, or leave it blank. Local numbers use your billing "
 "country.</small>"
-msgstr ""
-
-#. module: mobilepay_payment
-#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_inline_form
-msgid "<span class=\"text-muted\">Pay with Vipps or MobilePay</span>"
 msgstr ""
 
 #. module: mobilepay_payment
@@ -123,6 +118,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_settlement_view_form
 #: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_transaction_form_mobilepay
 msgid "Amounts"
+msgstr ""
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_branding_2027
+msgid "Approve January 2027 Branding"
 msgstr ""
 
 #. module: mobilepay_payment
@@ -208,6 +208,11 @@ msgid "Captured Amount"
 msgstr ""
 
 #. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_branding_market
+msgid "Checkout Branding Market"
+msgstr ""
+
+#. module: mobilepay_payment
 #: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
 msgid "Clears the Webhook ID and Secret from Odoo manually."
 msgstr ""
@@ -268,6 +273,11 @@ msgstr ""
 #: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__auto_capture_delay
 msgid ""
 "Delay in hours before automatic capture (when manual capture is disabled)."
+msgstr ""
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_branding_market__dk
+msgid "Denmark"
 msgstr ""
 
 #. module: mobilepay_payment
@@ -387,6 +397,11 @@ msgstr ""
 msgid ""
 "Fetch the full payment event history from MobilePay and add it to the "
 "chatter"
+msgstr ""
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_branding_market__fi
+msgid "Finland"
 msgstr ""
 
 #. module: mobilepay_payment
@@ -583,11 +598,6 @@ msgstr ""
 #. module: mobilepay_payment
 #: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_journal_id
 msgid "MobilePay Journal"
-msgstr ""
-
-#. module: mobilepay_payment
-#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_inline_form
-msgid "MobilePay Logo"
 msgstr ""
 
 #. module: mobilepay_payment
@@ -829,6 +839,11 @@ msgid "No webhook is currently registered for this provider."
 msgstr ""
 
 #. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_branding_market__no
+msgid "Norway"
+msgstr ""
+
+#. module: mobilepay_payment
 #: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_sales_unit_region__no
 msgid "Norway (NOK)"
 msgstr ""
@@ -851,8 +866,28 @@ msgid "Only open MobilePay authorizations can be cancelled."
 msgstr ""
 
 #. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_branding_2027
+msgid ""
+"Opt in to the DK/FI name and blue Vipps paymark change on 12 January 2027 "
+"(UTC). Before that date MobilePay remains visible. Norway and Sweden always "
+"use orange Vipps. Leave off until the cutover has been reviewed."
+msgstr ""
+
+#. module: mobilepay_payment
 #: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_fee_tax_id
 msgid "Optional tax/VAT code to apply to the transaction fee expense line."
+msgstr ""
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Pay with MobilePay"
+msgstr ""
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Pay with Vipps"
 msgstr ""
 
 #. module: mobilepay_payment
@@ -979,6 +1014,11 @@ msgid "Sales Unit Region"
 msgstr ""
 
 #. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_branding_market__sales_unit
+msgid "Sales unit region"
+msgstr ""
+
+#. module: mobilepay_payment
 #: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__capture_mode
 msgid "Select how MobilePay should capture authorized payments."
 msgstr ""
@@ -988,6 +1028,13 @@ msgstr ""
 msgid ""
 "Select how MobilePay should capture authorized payments: manually, "
 "automatically on delivery, or automatically after a delay."
+msgstr ""
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_branding_market
+msgid ""
+"Select the website's target market, not the customer's language or currency."
+" Swedish branding does not change the merchant's sales unit or enable SEK."
 msgstr ""
 
 #. module: mobilepay_payment
@@ -1040,6 +1087,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/mobilepay_payment/models/payment_provider.py:0
 msgid "Successfully unregistered %s webhooks."
+msgstr ""
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_branding_market__se
+msgid "Sweden"
 msgstr ""
 
 #. module: mobilepay_payment

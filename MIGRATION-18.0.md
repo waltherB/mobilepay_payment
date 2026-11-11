@@ -2,6 +2,9 @@
 
 ## Current handoff (2026-11-11)
 
+The latest follow-up is market-specific branding at `18.0.1.3.0`, described at
+the end of this report. Earlier counts and scope below are historical evidence.
+
 Further live testing is paused at the operator's request; keep the HTTP-only
 local setup unchanged. The latest Nordic follow-up suite has **111 passing
 Odoo tests and 5 passing frontend tests**.
@@ -520,3 +523,132 @@ webhooks. Have native speakers review translated checkout, settings and
 accounting wording. Install the selected Odoo languages and enable them on the
 website; the module cannot translate Vipps's hosted page or app. No Greenlandic,
 Faroese or Norwegian Nynorsk translation coverage is claimed.
+
+## Follow-up: market branding and SEK contract verification (18.0.1.3.0)
+
+Source: Odoo 18 version `18.0.1.2.0`, committed as `7b0f44f`; target remains
+Odoo 18 Community. This is not an Odoo 19 migration. Existing addon inventory,
+dependencies, controllers, security, cron, accounting and payment lifecycle
+surfaces are unchanged except for the checkout presentation described here.
+Risk: **MEDIUM** for presentation/cutover; overall payment production risk
+remains **HIGH/BLOCKED** because real acceptance and Report API work are open.
+
+### Verified contracts and findings
+
+The operator correctly identified the brand distinction: Norway and Sweden
+use Vipps, while Denmark and Finland currently use MobilePay. The prior generic
+checkout name plus a fixed MobilePay image did not implement that distinction.
+
+Official resources inspected on 2026-11-11:
+
+- [Nordic integration guide](https://developer.vippsmobilepay.com/docs/knowledge-base/across-borders/):
+  market branding and direct wallet sales-unit currency rules.
+- [Published ePayment OpenAPI](https://developer.vippsmobilepay.com/redocusaurus/epayment-swagger-id.yaml):
+  `Currency` explicitly lists NOK/DKK/EUR for all merchants and SEK/USD/GBP
+  for **Payment Services Providers only**; the SEK minimum amount is 100 minor
+  units and also marked PSP-only. SEK exists in the same API specification,
+  but schema inclusion does not establish direct merchant wallet entitlement.
+- [PSP guide](https://developer.vippsmobilepay.com/docs/APIs/psp-epayment-api/epayment-psp-api-guide/):
+  PSP keys are not interchangeable with merchant/partner keys;
+  `CARD_PASSTHROUGH` requires a card callback and PSP-side money movement.
+  PSP capture/refund notifications do not themselves move money. Simply adding
+  SEK to the existing wallet allowlist would not implement this contract.
+- [Swedish currency help](https://help.vippsmobilepay.com/en-SE/articles/what-currency-do-i-pay-in):
+  Swedish customers see an approximate SEK equivalent; the bank converts from
+  the merchant currency.
+- [6 October 2026 announcement](https://vippsmobilepay.com/en-NO/news/2026/10/vipps-mobilepay-becomes-vipps-across-the-nordics):
+  MobilePay changes name on the coming 12 January; DK/FI retain blue,
+  NO/SE retain orange. This corroborates the requested January 2027 year.
+- [Official checkout branding](https://brand.vippsmobilepay.com/document/61#/branding/online/branding-in-the-checkout)
+  and its linked orange/blue asset collections: downloaded the original,
+  unaltered small SVG paymarks, with source URLs and SHA-256 recorded in
+  [asset provenance](./static/img/README.md).
+
+**Direct merchant SEK is BLOCKED**, not declared impossible for the platform.
+A merchant-specific updated contract or properly scoped PSP adapter is needed
+before enabling it. This change intentionally leaves wallet currency enforcement
+unchanged. No real API credentials were used to probe currencies.
+
+### Plan and implementation
+
+1. Keep merchant currency/credentials separate from website market presentation.
+2. Resolve a single brand/name/paymark for every checkout surface.
+3. Gate the future DK/FI release on operator approval and an exact date boundary;
+   preserve default behavior and allow rollback without stored image/name edits.
+4. Test current markets, guest routes, cutover boundaries and translations;
+   keep remote acceptance and SEK contract blockers explicit.
+
+Changed files/surfaces:
+
+- [Provider model](./models/payment_provider.py): new
+  `mobilepay_branding_market` selection (follow sales unit, DK, FI, NO, SE) and
+  `mobilepay_branding_2027` approval flag. NO/SE return orange Vipps; DK/FI return
+  MobilePay until approval **and** `2027-01-12 00:00 UTC`, then blue Vipps.
+  The clock uses explicit UTC, independent of server/browser/user timezones.
+- [Provider view](./views/payment_provider_views.xml): operator market and
+  approval controls; neither changes merchant currency entitlement.
+- [Checkout templates](./views/mobilepay_templates.xml): actual payment-option
+  label/logo, inline label/logo, alt/title and "Secured by" name resolve from the
+  provider. Odoo 17/18 `payment.method_form`/`payment.form_logo` implementations
+  were compared before extending the target template. The inline form uses the
+  core-provided `provider_sudo`; no custom ACL/sudo bypass was added.
+- [Official assets](./static/img/): original orange/blue paymarks served locally;
+  existing MobilePay SVG retained for the current DK/FI phase. No recoloring.
+- [Manifest](./__manifest__.py): `18.0.1.3.0`.
+- [Branding tests](./tests/test_market_branding.py) and
+  [test registration](./tests/__init__.py): ten deterministic tests, including
+  public guest payment page and asset HTTP responses, name/image agreement,
+  approval-off, day-before/day-of/day-after, unchanged NO/SE color, independence
+  from currency/language and preservation of custom names/images/credentials.
+- [Catalogs](./i18n/) and
+  [localization tests](./tests/test_nordic_localization.py): current extracted
+  settings and backend-generated brand labels translated in four languages.
+- [README](./README.md), [TODO](./TODO.md) and
+  [Apps description](./static/description/index.html): clarified branding,
+  cutover controls, API distinctions and outstanding acceptance.
+
+Data migration: only two new provider fields, populated through normal Odoo
+schema/default initialization (`sales_unit`, approval off). No version-specific
+data rewrite is required. No model/field/type/XML ID renames, deleted data,
+monetary computations, SQL constraints or accounting/transaction relationships
+change. Shared noupdate method/provider names and images are not rewritten.
+Administrative custom names remain stored; checkout deliberately shows the
+official market brand. Technical `mobilepay` codes/routes stay stable.
+
+### Validation and unresolved acceptance
+
+- **PASS:** final full update suite: **121 registered Odoo tests, zero failures
+  or errors**, recorded in `mobilepay18-branding-final-suite.log`; five Node
+  frontend tests also pass with the README command.
+- **PASS:** six targeted localization checks after refreshing all 258 terms in
+  each of four languages (1,032 translations), including both generated brand
+  labels. Evidence: `mobilepay18-branding-localization-tests.log`.
+- **PASS:** Python AST, XML/SVG parsing, manifest data/asset resolution and Git
+  whitespace checks. Existing provider credential/capture/account/branding
+  fingerprints match before/after the full update. Persistent module version
+  is `18.0.1.3.0`; Danish sandbox remains Test Mode, published, delivery capture,
+  follow-sales-unit branding and future-cutover approval off.
+- **PASS:** final Odoo log inspection: expected simulated API/offline/accounting
+  errors and negative-input warnings are test fixtures; the pre-existing
+  link/button accessibility warning remains unchanged.
+- **PASS:** initial targeted ten-test branding run after correcting a test-only
+  missing-language activation fixture. Complete failure/retest logs retained:
+  `mobilepay18-branding-targeted.log`,
+  `mobilepay18-branding-targeted-retest.log`.
+- **PASS:** integrated Chromium loaded all three local SVG paths with HTTP 200.
+  An image-decode/canvas check on the sandbox HTML page confirmed colored and
+  white pixels for each image, including the retained MobilePay SVG. Standalone
+  SVG navigation emitted VS Code browser-host preload/CSP warnings; embedded
+  image decoding succeeded. This is asset rendering evidence, not payment or
+  complete visual brand acceptance.
+- **NOT RUN:** fresh install for this follow-up; the existing authorized
+  disposable database contains operator configuration and was not recreated.
+- **BLOCKED:** direct-wallet SEK contract, real merchant/app/HTTPS webhook and
+  remote report acceptance.
+- **NOT RUN:** native-speaker review and human brand acceptance in deployed
+  desktop/mobile checkout, final rollout time confirmation, and actual Vipps
+  hosted-page/app branding.
+
+Use the README update/test command against `mobilepay18_test` only; no restore,
+customer backup read, public tunnel, source-branch modification, commit or push
+is part of this follow-up. Existing live-test pause remains in effect.

@@ -44,7 +44,7 @@ class TestNordicLocalization(TransactionCase):
 
     def test_complete_current_catalog_inventory(self):
         expected = {term_key(entry): entry for entry in self.template}
-        self.assertEqual(len(expected), 249)
+        self.assertEqual(len(expected), 258)
         self.assertEqual(len(expected), len(self.template), "Duplicate POT terms")
         for code, catalog in self.catalogs.items():
             with self.subTest(language=code):
@@ -65,11 +65,21 @@ class TestNordicLocalization(TransactionCase):
                         self.assertTrue(entry.msgstr.strip(), "Missing translation")
                         self.assertEqual(entry.occurrences, expected[key].occurrences)
                         self.assertEqual(entry.comment, expected[key].comment)
+                        self.assertEqual(entry.tcomment, expected[key].tcomment)
                         self.assertEqual(entry.flags, expected[key].flags)
                         if entry.msgstr == entry.msgid:
+                            allowed_shared_terms = {
+                                "MobilePay",
+                                "Vipps / MobilePay",
+                                "ID",
+                                "Status",
+                                "Finland (EUR)",
+                            }
+                            if code in {"da", "nb", "sv"}:
+                                allowed_shared_terms.add("Finland")
                             self.assertIn(
                                 entry.msgid,
-                                {"MobilePay", "Vipps / MobilePay", "ID", "Status", "Finland (EUR)"},
+                                allowed_shared_terms,
                                 "Untranslated English source",
                             )
 
@@ -174,7 +184,9 @@ class TestNordicLocalization(TransactionCase):
             "number with country code, or leave it blank. Local numbers use your billing "
             "country.</small>"
         ).msgid
-        source_branding = '<span class="text-muted">Pay with Vipps or MobilePay</span>'
+        provider.write(
+            {"mobilepay_branding_market": "DK", "mobilepay_branding_2027": False}
+        )
         for code, locale in LANGUAGES.items():
             with self.subTest(language=locale):
                 self.env["res.lang"]._activate_lang(locale)
@@ -184,9 +196,11 @@ class TestNordicLocalization(TransactionCase):
                 public_env = self.env(
                     user=website.user_id, context=dict(self.env.context, lang=locale)
                 )
+                provider_sudo = provider.with_env(public_env).sudo()
                 with MockRequest(public_env, website=website, context={"lang": locale}):
                     rendered = public_env["ir.ui.view"]._render_template(
-                        "mobilepay_payment.mobilepay_inline_form", {"provider_id": provider.id}
+                        "mobilepay_payment.mobilepay_inline_form",
+                        {"provider_id": provider.id, "provider_sudo": provider_sudo},
                     )
                 document = html.fromstring(str(rendered))
                 catalog = self.catalogs[code]
@@ -204,8 +218,21 @@ class TestNordicLocalization(TransactionCase):
                 )
                 self.assertEqual(
                     document.xpath("//span")[0].text_content(),
-                    html.fromstring(catalog.find(source_branding).msgstr).text_content(),
+                    catalog.find("Pay with MobilePay").msgstr,
                 )
+                provider.write({"mobilepay_branding_market": "SE"})
+                provider_sudo = provider.with_env(public_env).sudo()
+                with MockRequest(public_env, website=website, context={"lang": locale}):
+                    vipps_rendered = public_env["ir.ui.view"]._render_template(
+                        "mobilepay_payment.mobilepay_inline_form",
+                        {"provider_id": provider.id, "provider_sudo": provider_sudo},
+                    )
+                vipps_document = html.fromstring(str(vipps_rendered))
+                self.assertEqual(
+                    vipps_document.xpath("//span")[0].text_content(),
+                    catalog.find("Pay with Vipps").msgstr,
+                )
+                provider.write({"mobilepay_branding_market": "DK"})
                 fields = self.env["payment.provider"].with_context(lang=locale).fields_get(
                     ["mobilepay_sales_unit_region"]
                 )

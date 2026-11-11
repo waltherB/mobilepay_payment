@@ -3,9 +3,9 @@
 Development integration with the Vipps MobilePay ePayment API. The client calls
 `/epayment/v1`, `/webhooks/v1`, and `/settlement/v1` endpoints.
 
-**Status: not production-ready.** Version `18.0.1.2.0` has 111 passing Odoo 18
-tests plus 5 frontend regressions, extending the earlier 93-test baseline with
-Nordic market and localization coverage. Earlier local Chromium checkout
+**Status: not production-ready.** Version `18.0.1.3.0` has **121 passing Odoo
+tests and 5 frontend tests**, including market-specific checkout branding.
+Earlier local Chromium checkout
 acceptance used synthetic API responses.
 The demonstrated lifecycle/phone gaps are repaired. No live merchant API,
 MobilePay app approval, or public reverse-proxy delivery has been accepted.
@@ -29,12 +29,12 @@ Test Mode is regression-tested but not yet accepted on the remote payment page.
 
 ### Branding cutover: 12 January 2027
 
-The official checkout guidance announces MobilePay becoming **Vipps** in Denmark
-and Finland on 12 January. Track the requested **2027-01-12** rollout in the
-[branding TODOs](TODO.md#branding-cutover-2027-01-12). The new **Vipps Blue**
-logo and SVG paymark libraries are available; official links and asset names
-are recorded there. No assets, display names or technical identifiers have
-been changed for this future cutover.
+The [6 October 2026 announcement](https://vippsmobilepay.com/en-NO/news/2026/10/vipps-mobilepay-becomes-vipps-across-the-nordics)
+confirms MobilePay becoming **Vipps** in Denmark, Finland and Greenland on
+**12 January 2027**. DK/FI retain blue; Norway/Sweden retain orange. The module
+ships official, unchanged orange and blue SVG paymarks, with
+[asset provenance](static/img/README.md). DK/FI switching is gated by explicit
+operator approval and the effective date; no automatic unapproved rename occurs.
 
 ## What is implemented
 
@@ -83,6 +83,9 @@ Both dependencies were available in the local test image.
    Set **Sales Unit Region** to the region registered for those credentials:
    Denmark (DKK), Finland (EUR), or Norway (NOK). This is not the customer's
    country. The default remains Denmark for existing Danish installations.
+   Set **Checkout Branding Market** to the website's target market, or leave
+   **Sales unit region** selected to follow the merchant region. A Swedish
+   website can show Vipps independently of the merchant's payment currency.
 3. Configure the settlement journal, clearing account, fee expense account, and
    optional fee tax. Configure the standard payment journal as a bank journal.
    Missing MobilePay outstanding accounts default to the configured clearing
@@ -115,10 +118,16 @@ currency: a Norwegian or Swedish customer can pay a Danish merchant in DKK.
 | Finland | EUR |
 | Norway | NOK |
 
-These are the wallet sales-unit regions listed in the
+These are the direct wallet sales-unit regions listed in the
 [official Nordic guide](https://developer.vippsmobilepay.com/docs/knowledge-base/across-borders/).
-Swedish customers use cross-border payments; this is **not** a claim of Swedish
-merchant onboarding or SEK support. Mismatched currencies are hidden at
+The [published ePayment currency schema](https://developer.vippsmobilepay.com/redocusaurus/epayment-swagger-id.yaml)
+does include **SEK**, explicitly marked **Payment Services Providers only**.
+This module uses merchant `WALLET` payments, not PSP `CARD_PASSTHROUGH`; sharing
+the `/epayment/v1` path does not make the credentials, capture/refund semantics
+or currency entitlements interchangeable. Direct Swedish merchant/SEK support
+is **BLOCKED** pending an established contract or separately scoped PSP adapter.
+The module does not claim that Vipps as a platform lacks SEK support.
+Mismatched currencies are hidden at
 checkout and rejected before payment creation, even if an operator clears the
 provider's currency filter. Configure each merchant unit's own credentials and
 matching region; never infer its region from the customer's billing country.
@@ -136,7 +145,7 @@ does not establish that the person has an eligible app account; in Test Mode,
 use a registered Merchant Test user, not an ordinary personal number.
 
 English source text and **Danish, Finnish, Norwegian Bokmal and Swedish**
-translations cover all 249 extracted Odoo module terms per language, including checkout,
+translations cover all 258 extracted Odoo module terms per language, including checkout,
 JavaScript errors, settings and accounting messages. Install the desired Odoo
 languages and add them to the website's languages to expose the language picker.
 Swedish also serves Swedish-speaking Finnish customers; Danish serves the Danish
@@ -149,7 +158,38 @@ the default display names to `Vipps / MobilePay`. Empty or customized method
 restrictions and customized names are preserved. No technical identifiers,
 credentials, accounting history or currencies on existing transactions change.
 Check the sales-unit region explicitly on any previously customized non-Danish
-provider. The separate January 2027 logo cutover remains pending.
+provider. The separate January 2027 logo cutover is prepared but remains
+disabled until explicitly approved.
+
+### Market-specific checkout branding
+
+| Checkout Branding Market | Before 2027-01-12 | On/after 2027-01-12 with approval |
+| --- | --- | --- |
+| Denmark / Finland | MobilePay, existing blue MobilePay asset | Vipps, official blue paymark |
+| Norway / Sweden | Vipps, official orange paymark | Vipps, official orange paymark |
+
+Branding follows the configured website market, not the visitor's language,
+billing country or phone prefix. By default it follows **Sales Unit Region**;
+Greenland and Faroese Danish-region stores use Denmark. It consistently covers
+the payment-option name, option logo, inline heading/logo, alt/title text and
+the checkout's "Secured by" name. Both apps remain accepted by the same wallet
+redirect; no app-install detection or different API routing is introduced.
+
+After reviewing the release and official rollout instructions, enable
+**Approve January 2027 Branding** on the provider. The DK/FI name and paymark
+then change at **2027-01-12 00:00 UTC**, never earlier. Leave the approval off
+to retain the old branding until your rollout is approved. Disabling it rolls
+back the display. NO/SE always stay orange regardless of approval.
+Reconfirm the rollout timing and hosted-page behavior with Vipps before release.
+
+Branding is rendered from provider configuration; it does not rewrite shared
+payment-method names/images or customized admin provider names, merchant data,
+credentials, XML IDs or technical `mobilepay` codes. Checkout deliberately shows
+the official brand instead of a customized shared method label. Existing DB
+provider/Apps icons remain unchanged; they are not the customer checkout icon.
+For multiple websites/merchant units, configure separate website-bound provider
+records with their own credentials, region and market, using existing Odoo
+provider selection; this does not add multiple duplicate wallet choices.
 
 Payment creation requires a real HTTPS website domain/base URL. The addon
 rejects HTTP configuration before contacting Vipps; it cannot turn an HTTP
@@ -194,6 +234,8 @@ test modules imported by [tests/__init__.py](tests/__init__.py):
 - [Localization tests](tests/test_nordic_localization.py): 6 tests for current
   catalogs, placeholders/references, Odoo loading and public frontend translations.
 - [Frontend phone tests](tests/test_payment_form.mjs): 5 Node tests.
+- [Market-branding tests](tests/test_market_branding.py): 10 tests, including
+  actual public payment-page/asset requests and approved cutover boundaries.
 
 Journal configuration also has a non-superuser regression test: when the
 accounting payment method is missing, the addon uses Odoo's standard provider

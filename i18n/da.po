@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0-20261015\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 11:58+0000\n"
-"PO-Revision-Date: 2026-11-11 11:58+0000\n"
+"POT-Creation-Date: 2026-11-11 12:15+0000\n"
+"PO-Revision-Date: 2026-11-11 12:15+0000\n"
 "Last-Translator: MobilePay localization contributors\n"
 "Language-Team: Danish\n"
 "Language: da\n"
@@ -61,11 +61,6 @@ msgstr ""
 "<small class=\"form-text text-muted\">Indtast dit Vipps- eller MobilePay-"
 "telefonnummer med landekode, eller lad feltet stå tomt. Lokale numre bruger "
 "dit faktureringsland.</small>"
-
-#. module: mobilepay_payment
-#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_inline_form
-msgid "<span class=\"text-muted\">Pay with Vipps or MobilePay</span>"
-msgstr "<span class=\"text-muted\">Betal med Vipps eller MobilePay</span>"
 
 #. module: mobilepay_payment
 #: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_settlement_view_form
@@ -136,6 +131,11 @@ msgstr "Beløb: %(amount)s"
 #: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_transaction_form_mobilepay
 msgid "Amounts"
 msgstr "Beløb"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_branding_2027
+msgid "Approve January 2027 Branding"
+msgstr "Godkend brandingændringen fra januar 2027"
 
 #. module: mobilepay_payment
 #: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
@@ -228,6 +228,11 @@ msgid "Captured Amount"
 msgstr "Hævet beløb"
 
 #. module: mobilepay_payment
+#: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_branding_market
+msgid "Checkout Branding Market"
+msgstr "Marked for betalingsbranding"
+
+#. module: mobilepay_payment
 #: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
 msgid "Clears the Webhook ID and Secret from Odoo manually."
 msgstr "Rydder manuelt webhook-id og -hemmelighed fra Odoo."
@@ -291,6 +296,11 @@ msgid ""
 msgstr ""
 "Forsinkelse i timer før automatisk hævning (når manuel hævning er "
 "deaktiveret)."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_branding_market__dk
+msgid "Denmark"
+msgstr "Danmark"
 
 #. module: mobilepay_payment
 #: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_sales_unit_region__dk
@@ -415,6 +425,11 @@ msgid ""
 "chatter"
 msgstr ""
 "Hent hele betalingshistorikken fra MobilePay, og tilføj den til chatteren"
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_branding_market__fi
+msgid "Finland"
+msgstr "Finland"
 
 #. module: mobilepay_payment
 #: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_sales_unit_region__fi
@@ -616,11 +631,6 @@ msgstr "Moms på MobilePay-gebyr"
 #: model:ir.model.fields,field_description:mobilepay_payment.field_payment_provider__mobilepay_journal_id
 msgid "MobilePay Journal"
 msgstr "MobilePay-journal"
-
-#. module: mobilepay_payment
-#: model_terms:ir.ui.view,arch_db:mobilepay_payment.mobilepay_inline_form
-msgid "MobilePay Logo"
-msgstr "MobilePay-logo"
 
 #. module: mobilepay_payment
 #: model:ir.model.fields,field_description:mobilepay_payment.field_payment_transaction__mobilepay_payment_id
@@ -878,6 +888,11 @@ msgid "No webhook is currently registered for this provider."
 msgstr "Der er i øjeblikket ingen webhook registreret for denne udbyder."
 
 #. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_branding_market__no
+msgid "Norway"
+msgstr "Norge"
+
+#. module: mobilepay_payment
 #: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_sales_unit_region__no
 msgid "Norway (NOK)"
 msgstr "Norge (NOK)"
@@ -900,10 +915,34 @@ msgid "Only open MobilePay authorizations can be cancelled."
 msgstr "Kun åbne MobilePay-autorisationer kan annulleres."
 
 #. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_branding_2027
+msgid ""
+"Opt in to the DK/FI name and blue Vipps paymark change on 12 January 2027 "
+"(UTC). Before that date MobilePay remains visible. Norway and Sweden always "
+"use orange Vipps. Leave off until the cutover has been reviewed."
+msgstr ""
+"Tilvælg navneændringen for DK/FI og ændringen til det blå Vipps-betalingsmærke "
+"den 12. januar 2027 (UTC). Indtil den dato vises MobilePay fortsat. Norge og"
+" Sverige bruger altid det orange Vipps. Lad indstillingen være slået fra, "
+"indtil overgangen er gennemgået."
+
+#. module: mobilepay_payment
 #: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_fee_tax_id
 msgid "Optional tax/VAT code to apply to the transaction fee expense line."
 msgstr ""
 "Valgfri skatte-/momskode til omkostningslinjen for transaktionsgebyrer."
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Pay with MobilePay"
+msgstr "Betal med MobilePay"
+
+#. module: mobilepay_payment
+#. odoo-python
+#: code:addons/mobilepay_payment/models/payment_provider.py:0
+msgid "Pay with Vipps"
+msgstr "Betal med Vipps"
 
 #. module: mobilepay_payment
 #: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
@@ -1033,6 +1072,11 @@ msgid "Sales Unit Region"
 msgstr "Salgsenhedens region"
 
 #. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_branding_market__sales_unit
+msgid "Sales unit region"
+msgstr "Salgsenhedens region"
+
+#. module: mobilepay_payment
 #: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__capture_mode
 msgid "Select how MobilePay should capture authorized payments."
 msgstr "Vælg, hvordan MobilePay skal hæve autoriserede betalinger."
@@ -1045,6 +1089,15 @@ msgid ""
 msgstr ""
 "Vælg, hvordan MobilePay skal hæve autoriserede betalinger: manuelt, "
 "automatisk ved levering eller automatisk efter en forsinkelse."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields,help:mobilepay_payment.field_payment_provider__mobilepay_branding_market
+msgid ""
+"Select the website's target market, not the customer's language or currency."
+" Swedish branding does not change the merchant's sales unit or enable SEK."
+msgstr ""
+"Vælg webstedets målmarked, ikke kundens sprog eller valuta. Svensk branding "
+"ændrer ikke forhandlerens salgsregion og aktiverer ikke SEK."
 
 #. module: mobilepay_payment
 #: model_terms:ir.ui.view,arch_db:mobilepay_payment.payment_provider_form_mobilepay
@@ -1101,6 +1154,11 @@ msgstr ""
 #: code:addons/mobilepay_payment/models/payment_provider.py:0
 msgid "Successfully unregistered %s webhooks."
 msgstr "%s webhooks afregistreret."
+
+#. module: mobilepay_payment
+#: model:ir.model.fields.selection,name:mobilepay_payment.selection__payment_provider__mobilepay_branding_market__se
+msgid "Sweden"
+msgstr "Sverige"
 
 #. module: mobilepay_payment
 #. odoo-python

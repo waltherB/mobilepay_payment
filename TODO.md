@@ -1,7 +1,7 @@
 # MobilePay / Vipps TODOs
 
-Updated: 2026-11-11. The initial migration was pushed on `18.0`;
-the Nordic coverage follow-up remains local for review.
+Updated: 2026-11-11. The migration and Nordic coverage were pushed on `18.0`;
+the market-branding follow-up remains local for review.
 See [migration and acceptance evidence](MIGRATION-18.0.md).
 Unchecked items are not accepted functionality or production approval.
 
@@ -51,12 +51,13 @@ Unchecked items are not accepted functionality or production approval.
 
 ## Branding cutover: 2027-01-12
 
-The requested rollout date is **12 January 2027**, not 1 December.
+The rollout date is **12 January 2027**, not 1 December.
 The [official checkout guidance](https://brand.vippsmobilepay.com/document/61#/branding/online/branding-in-the-checkout)
-was inspected on 2026-11-11. It announces MobilePay becoming Vipps in Denmark
-and Finland on "12 January"; the page text inspected does not state the year.
-The 2027 rollout year is the operator's requirement. Reconfirm final rollout
-instructions before release.
+was inspected on 2026-11-11. The
+[6 October 2026 announcement](https://vippsmobilepay.com/en-NO/news/2026/10/vipps-mobilepay-becomes-vipps-across-the-nordics)
+confirms the coming January change in Denmark, Finland and Greenland: Vipps
+name, blue retained in DK/FI, orange retained in NO/SE.
+Reconfirm final rollout instructions and timing before release.
 
 ### Official assets located
 
@@ -68,33 +69,33 @@ instructions before release.
 | [Checkout blue-paymark download collection](https://brand.vippsmobilepay.com/share/ySupQsv119vEjWvszFqY) | Official checkout download link; recheck selected contents before adoption |
 | [Official button assets / Figma](https://www.figma.com/community/file/1240264703803071832/vipps-buttons-logo-and-mark) | Buttons linked directly by the checkout guidance |
 
-Asset availability and names were verified in the official libraries; no
-replacement asset was downloaded, altered or installed. Some example captions
+Official orange/blue paymarks are now downloaded unchanged and shipped;
+[provenance and hashes](static/img/README.md) identify their original files.
+Some example captions
 on the checkout page conflict about market/color usage: use the dedicated
 DK/FI Vipps Blue libraries and reconfirm final market rules before rollout.
 
-- [ ] Download the approved DK/FI assets from these official collections; retain
+- [x] Download the approved DK/FI assets from these official collections; retain
   source URL, download date, applicable usage terms and selected variant.
   Prefer official SVG paymarks where supported; never redraw/recolor the logo.
 - [ ] Reconfirm market/color variants, clear space, minimum size, contrast and
   button rules. Use the same logo/paymark treatment and prominence as comparable
   payment options; do not hide Vipps behind extra selection steps.
-- [ ] Prepare a reviewed cutover release for 2027-01-12; do not switch live
-  customer-facing branding early or implement an unreviewed date-based toggle.
-- [ ] Update checkout/provider/payment-method display names, inline text,
-  accessibility/alt text, Danish translations and customer status messages.
-- [ ] Replace [inline logo](static/img/mobilepay_logo.svg) and
-  [Apps/provider icon](static/description/icon.svg), then check
-  [templates](views/mobilepay_templates.xml), [seed data](data/payment_provider_data.xml),
-  [README](README.md), manifest and [Apps description](static/description/index.html).
-- [ ] Plan an explicit upgrade for existing provider/method names and database
-  images: seed records are `noupdate`; asset-file edits alone will not refresh
-  those records. Preserve operator customizations and retain rollback options.
+- [x] Prepare an operator-gated cutover for 2027-01-12 UTC: no early DK/FI
+  change, no switch without explicit approval; NO/SE always stay orange.
+- [ ] Review the prepared release and explicitly enable **Approve January 2027
+  Branding** at the operator's chosen rollout; reconfirm the effective time.
+- [x] Render market-specific checkout option name/image, inline heading/logo,
+  alt/title and "Secured by" name. Keep English and four Nordic catalogs current.
+- [x] Avoid shared-record rewrites: render names/paymarks per provider market.
+  Custom admin names, stored method images, credentials and history are retained.
+- [ ] Review generic Apps/admin icon and historical customer-status wording
+  separately; these remain technical MobilePay surfaces, not checkout branding.
 - [ ] Keep technical module/provider codes, existing XML IDs, merchant references,
   credentials, transaction history and API routes stable unless upstream
   product-specific guidance requires changes. Branding is not a data rename.
-- [ ] Verify no current template/image path is broken, including the Apps
-  description's relative logo reference; test actual rendered images.
+- [x] Verify actual guest checkout name/image paths and HTTP asset responses.
+- [ ] Review the pre-existing Apps description's relative logo reference.
 - [ ] Run guest/authenticated desktop/mobile checkout, image-loading and
   accessibility checks in English/Danish before and after the cutover update.
 - [ ] Review the separately announced developer-documentation domain move on
@@ -113,20 +114,26 @@ to work unless product-specific guidance says otherwise.
   by billing country and accept explicit international numbers.
 - [x] Expand only legacy default restrictions/names on upgrade; preserve custom
   restrictions, credentials, history and technical identifiers.
-- [x] Refresh the Odoo 18 term inventory and supply all 249 extracted terms in
-  Danish, Finnish, Norwegian Bokmal and Swedish (996 translations).
+- [x] Refresh the Odoo 18 term inventory and supply all 258 extracted terms in
+  Danish, Finnish, Norwegian Bokmal and Swedish (1,032 translations).
 - [x] Include the addon in Odoo's public frontend translation module list so
   translated JavaScript payment errors are available to website visitors.
 - [ ] Complete real test-app approval, return, capture/refund and signed webhook
   acceptance for each deployed merchant region and cross-border customer market.
 - [ ] Confirm the operator's sales-unit region matches its actual credentials;
-  Swedish customers do not imply SEK or Swedish merchant-unit support.
+  the current OpenAPI marks SEK as PSP-only. Do not equate Swedish branding
+  with direct Swedish merchant onboarding or wallet SEK entitlement.
+- [ ] Establish a verified direct merchant SEK contract, or scope a proper PSP
+  integration with PSP credentials/card callbacks and different modification
+  semantics, before enabling SEK. Current direct-WALLET SEK support is BLOCKED.
 - [ ] Have native speakers review Danish, Finnish, Norwegian Bokmal and Swedish
   wording in desktop/mobile checkout, errors and accounting screens.
 - [ ] Confirm deployed website languages and public JavaScript translations;
   Odoo catalogs do not control the hosted Vipps payment page or app language.
-- [ ] Reconfirm current multi-market Vipps/MobilePay logo/button presentation
-  with official assets; keep the future DK/FI Vipps Blue cutover separate.
+- [x] Implement current market-specific MobilePay (DK/FI) and orange Vipps
+  (NO/SE) presentation; ship the approved blue mark behind the cutover gate.
+- [ ] Obtain human brand/visual acceptance in each deployed checkout and review
+  whether a multi-market shop should offer both brands as separate selections.
 
 ## 4. Remaining production gates
 
@@ -146,7 +153,9 @@ to work unless product-specific guidance says otherwise.
 - Lifecycle, checkout-phone, journal permissions and HTTP return-URL validation
   fixes passed the earlier 93-test update.
 - Nordic market, currency, phone and localization follow-up:
-  **111 registered Odoo tests and 5 Node frontend tests pass**.
+  the earlier 111-test update passed.
+- Market-branding follow-up: **121 registered Odoo tests and 5 Node frontend
+  tests pass**, including approval/date boundaries and guest checkout assets.
 - Earlier fresh installation: 91 tests passed before the two follow-up tests.
 - Local synthetic Chromium, signed HTTP, delivery/backorder and accounting
   acceptance passed; these do not substitute for merchant test-unit acceptance.

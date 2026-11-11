@@ -2,6 +2,7 @@
 
 import logging
 import json
+from datetime import date, datetime, timezone
 from urllib.parse import urlparse, urlunparse
 from cryptography.fernet import Fernet
 from odoo import api, fields, models, _
@@ -28,6 +29,44 @@ class PaymentProvider(models.Model):
              "customer's country. Greenland uses Denmark. Swedish customers can pay "
              "cross-border; SEK is not supported by this wallet integration.",
     )
+
+    mobilepay_branding_market = fields.Selection(
+        [
+            ("sales_unit", "Sales unit region"),
+            ("DK", "Denmark"),
+            ("FI", "Finland"),
+            ("NO", "Norway"),
+            ("SE", "Sweden"),
+        ],
+        string="Checkout Branding Market",
+        default="sales_unit",
+        required=True,
+        help="Select the website's target market, not the customer's language or currency. "
+             "Swedish branding does not change the merchant's sales unit or enable SEK.",
+    )
+    mobilepay_branding_2027 = fields.Boolean(
+        string="Approve January 2027 Branding",
+        help="Opt in to the DK/FI name and blue Vipps paymark change on 12 January 2027 "
+             "(UTC). Before that date MobilePay remains visible. Norway and Sweden "
+             "always use orange Vipps. Leave off until the cutover has been reviewed.",
+    )
+
+    def _mobilepay_checkout_branding(self):
+        self.ensure_one()
+        market = self.mobilepay_branding_market
+        if market == "sales_unit":
+            market = self.mobilepay_sales_unit_region
+        if market in ("NO", "SE"):
+            name, asset = "Vipps", "vipps_orange.svg"
+        elif self.mobilepay_branding_2027 and datetime.now(timezone.utc).date() >= date(2027, 1, 12):
+            name, asset = "Vipps", "vipps_blue.svg"
+        else:
+            name, asset = "MobilePay", "mobilepay_logo.svg"
+        return {
+            "name": name,
+            "logo": f"/mobilepay_payment/static/img/{asset}",
+            "payment_label": _("Pay with Vipps") if name == "Vipps" else _("Pay with MobilePay"),
+        }
 
     def _mobilepay_currency_code(self):
         self.ensure_one()
