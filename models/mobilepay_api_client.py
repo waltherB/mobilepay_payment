@@ -46,10 +46,10 @@ class MobilePayApiClient(models.AbstractModel):
             "Authorization": f"Bearer {access_token}",
             # Mandatory Vipps system headers
             "Vipps-System-Name": "Odoo",
-            "Vipps-System-Version": "17.0",
+            "Vipps-System-Version": "18.0",
             "Vipps-System-Plugin-Name": "mobilepay_payment",
             "Vipps-System-Plugin-Version": "1.0.0",
-            "User-Agent": "Odoo/17.0 mobilepay_payment/1.0.0",
+            "User-Agent": "Odoo/18.0 mobilepay_payment/1.0.0",
             # API subscription and merchant identification
             "Ocp-Apim-Subscription-Key": self._sanitize_header(
                 provider.mobilepay_subscription_key

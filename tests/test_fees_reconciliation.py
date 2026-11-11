@@ -92,6 +92,7 @@ class FeesReconciliationBase(TransactionCase):
 
         # Resolve DKK currency
         self.dkk = self.env.ref("base.DKK")
+        self.env.company.currency_id = self.dkk
 
         # Accounts ----------------------------------------------------------------
         account_type_expense = self.env.ref("account.data_account_type_expenses", raise_if_not_found=False)
@@ -265,9 +266,10 @@ class TestConfigValidation(FeesReconciliationBase):
             "state": "test",
         })
         # Should not raise, should not create any settlement records
+        count_before = self.env["mobilepay.settlement"].search_count([])
         other._mobilepay_sync_settlements()
         count = self.env["mobilepay.settlement"].search_count([])
-        self.assertEqual(count, 0)
+        self.assertEqual(count, count_before)
 
 
 # ---------------------------------------------------------------------------
@@ -484,11 +486,24 @@ class TestFeeTax(FeesReconciliationBase):
 
     def test_fee_line_carries_tax_when_configured(self):
         """When mobilepay_fee_tax_id is set, the fee move line must reference that tax."""
+        self.env.company.account_fiscal_country_id = self.env.ref("base.dk")
         tax = self.env["account.tax"].create({
             "name": "MobilePay Fee VAT Test",
             "amount": 25.0,
             "type_tax_use": "purchase",
+            "country_id": self.env.ref("base.dk").id,
+            "tax_group_id": self.env["account.tax.group"].create({
+                "name": "MobilePay Test Taxes",
+                "country_id": self.env.ref("base.dk").id,
+            }).id,
         })
+        vat_account = self.env["account.account"].create({
+            "name": "MobilePay Input VAT (Test)", "code": "1903TEST",
+            "account_type": "asset_current",
+        })
+        tax.invoice_repartition_line_ids.filtered(
+            lambda line: line.repartition_type == "tax"
+        ).account_id = vat_account
         self.provider.mobilepay_fee_tax_id = tax
 
         entries = _make_entries(
@@ -505,11 +520,19 @@ class TestFeeTax(FeesReconciliationBase):
             self.provider._mobilepay_sync_settlements()
 
         move = self.env["account.move"].search([("ref", "=", "PAYOUT-TAX-001")], limit=1)
+        self.assertEqual(move.state, "posted")
         fee_lines = move.line_ids.filtered(lambda l: l.account_id == self.fee_account)
         self.assertTrue(fee_lines)
         # tax_ids on the line should contain our tax
         tax_ids = fee_lines[0].tax_ids
         self.assertIn(tax, tax_ids)
+        self.assertAlmostEqual(sum(fee_lines.mapped("balance")), 12)
+        self.assertAlmostEqual(sum(move.line_ids.filtered(
+            lambda line: line.account_id == vat_account
+        ).mapped("balance")), 3)
+        self.assertAlmostEqual(sum(move.line_ids.filtered(
+            lambda line: line.account_id == self.bank_account
+        ).mapped("balance")), 985)
 
 
 # ---------------------------------------------------------------------------
@@ -528,12 +551,14 @@ class TestSettlementStateMachine(FeesReconciliationBase):
         ):
             self.provider._mobilepay_sync_settlements()
 
-    def test_settlement_created_in_reconciled_state_when_auto_post(self):
-        """With auto_post=True, settlement record state should be 'reconciled'."""
+    def test_unmatched_settlement_is_not_reported_as_reconciled(self):
+        """Posting alone must not claim clearing-account reconciliation."""
         self._sync_payout("PAYOUT-STATE-001")
         s = self.env["mobilepay.settlement"].search([("payout_id", "=", "PAYOUT-STATE-001")], limit=1)
         self.assertTrue(s)
-        self.assertEqual(s.state, "reconciled")
+        self.assertEqual(s.state, "error")
+        self.assertEqual(s.journal_entry_id.state, "posted")
+        self.assertIn("not fully reconciled", s.note)
 
     def test_settlement_created_in_draft_state_when_auto_post_false(self):
         """With auto_post=False, settlement record state should be 'draft'."""
@@ -706,6 +731,8 @@ class TestClearingReconciliation(FeesReconciliationBase):
             "amount": 1000.0,
             "currency_id": self.dkk.id,
             "provider_id": self.provider.id,
+            "payment_method_id": self.env.ref("mobilepay_payment.payment_method_mobilepay").id,
+            "partner_id": self.env.user.partner_id.id,
             "state": "done",
         })
         # Manually set the mobilepay_payment_id if the field exists

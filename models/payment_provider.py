@@ -169,43 +169,45 @@ class PaymentProvider(models.Model):
             provider.show_mobilepay_fields = provider.code == "mobilepay"
 
     def _ensure_mobilepay_payment_method_line(self):
-        """Ensure the selected MobilePay journal has a payment method line.
+        """Ensure a selected bank journal has a linked payment method line.
 
         Odoo 17 requires a valid account payment method line when finalizing a
         payment into an account.payment record. Without this, the cron that
         post-processes the transaction raises
         "Please define a payment method line on your payment."""
         self.ensure_one()
-        if self.code != "mobilepay" or not self.mobilepay_journal_id:
+        if (
+            self.code != "mobilepay"
+            or not self.mobilepay_journal_id
+            or self.mobilepay_journal_id.type != "bank"
+        ):
             return
 
-        method = self.env["account.payment.method"].search(
-            [("code", "=", "mobilepay")], limit=1
-        )
+        method = self._get_provider_payment_method("mobilepay")
         if not method:
-            method = self.env["account.payment.method"].create(
-                {
-                    "name": "MobilePay",
-                    "code": "mobilepay",
-                    "payment_type": "inbound",
-                }
-            )
+            self._setup_payment_method("mobilepay")
+            method = self._get_provider_payment_method("mobilepay")
 
         line = self.env["account.payment.method.line"].search(
             [
                 ("journal_id", "=", self.mobilepay_journal_id.id),
                 ("payment_method_id", "=", method.id),
+                ("payment_provider_id", "in", [False, self.id]),
             ],
             limit=1,
         )
         if not line:
-            self.env["account.payment.method.line"].create(
+            line = self.env["account.payment.method.line"].create(
                 {
-                    "name": "MobilePay",
+                    "name": self.name,
                     "journal_id": self.mobilepay_journal_id.id,
                     "payment_method_id": method.id,
+                    "payment_provider_id": self.id,
+                    "payment_account_id": self.mobilepay_clearing_account_id.id,
                 }
             )
+        elif not line.payment_account_id and self.mobilepay_clearing_account_id:
+            line.payment_account_id = self.mobilepay_clearing_account_id
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -218,11 +220,17 @@ class PaymentProvider(models.Model):
     def write(self, vals):
         res = super().write(vals)
         if self.filtered(lambda p: p.code == "mobilepay") and (
-            "mobilepay_journal_id" in vals or "code" in vals
+            "mobilepay_journal_id" in vals or "mobilepay_clearing_account_id" in vals or "code" in vals
         ):
             for record in self.filtered(lambda p: p.code == "mobilepay"):
                 record._ensure_mobilepay_payment_method_line()
         return res
+
+    def _get_payment_method_outstanding_account_id(self, payment_method_id):
+        self.ensure_one()
+        if self.code == "mobilepay" and self.mobilepay_clearing_account_id:
+            return self.mobilepay_clearing_account_id.id
+        return super()._get_payment_method_outstanding_account_id(payment_method_id)
 
     @api.depends("capture_manually", "capture_on_delivery")
     def _compute_capture_mode(self):
@@ -245,6 +253,12 @@ class PaymentProvider(models.Model):
             else:
                 provider.capture_manually = False
                 provider.capture_on_delivery = False
+
+    @api.constrains("auto_capture_delay")
+    def _check_auto_capture_delay(self):
+        for provider in self:
+            if provider.code == "mobilepay" and provider.auto_capture_delay < 0:
+                raise ValidationError(_("Auto Capture Delay cannot be negative."))
 
     def _compute_feature_support_fields(self):
         """Override of `payment` to enable additional features."""
@@ -1062,7 +1076,7 @@ class PaymentProvider(models.Model):
 
             currency = self.env["res.currency"].search([("name", "=", data["currency_name"])], limit=1)
             if not currency:
-                currency = self.company_id.currency_id
+                raise UserError(_("Unknown MobilePay settlement currency: %s") % data["currency_name"])
 
             settlement_vals = {
                 "payout_id": payout_id,
@@ -1080,18 +1094,44 @@ class PaymentProvider(models.Model):
                 settlement.write(settlement_vals)
 
             try:
-                move_vals = self._mobilepay_prepare_settlement_move(settlement, data)
-                move = self.env["account.move"].create(move_vals)
-                settlement.write({"journal_entry_id": move.id})
+                with self.env.cr.savepoint():
+                    move = settlement.journal_entry_id
+                    if move and move.journal_id != self.mobilepay_journal_id:
+                        raise UserError(_("This payout already belongs to a different journal."))
+                    if not move:
+                        move = self.env["account.move"].create(
+                            self._mobilepay_prepare_settlement_move(settlement, data)
+                        )
+                        settlement.journal_entry_id = move
+                    elif move.state == "draft":
+                        values = self._mobilepay_prepare_settlement_move(settlement, data)
+                        values["line_ids"] = [(5, 0, 0)] + values["line_ids"]
+                        move.write(values)
+                    bank_balance = sum(move.line_ids.filtered(
+                        lambda line: line.account_id == self.mobilepay_journal_id.default_account_id
+                    ).mapped("balance"))
+                    if settlement.currency_id.compare_amounts(bank_balance, settlement.net_amount):
+                        raise UserError(_(
+                            "The settlement journal entry does not match the reported net payout. "
+                            "Review fee taxes and payout amounts before posting."
+                        ))
+                    if self.mobilepay_auto_post_settlements:
+                        if move.state == "draft":
+                            move.action_post()
+                        reconciled = self._mobilepay_reconcile_clearing_lines(move, data)
+                        settlement.write({
+                            "state": "reconciled" if reconciled else "error",
+                            "note": False if reconciled else _(
+                                "Payout posted, but clearing lines are not fully reconciled. "
+                                "Post the matching payment transactions and retry synchronization."
+                            ),
+                        })
+                        if not reconciled:
+                            _logger.warning("MobilePay payout %s has unmatched clearing lines", payout_id)
+                    else:
+                        settlement.state = "draft"
 
-                if self.mobilepay_auto_post_settlements:
-                    move.action_post()
-                    settlement.write({"state": "reconciled"})
-                    self._mobilepay_reconcile_clearing_lines(move, data)
-                else:
-                    settlement.write({"state": "draft"})
-
-            except Exception as e:
+            except UserError as e:
                 _logger.error(
                     "Failed to process MobilePay payout settlement %s: %s",
                     payout_id,
@@ -1108,6 +1148,11 @@ class PaymentProvider(models.Model):
         """Prepare values dict for the settlement Journal Entry (account.move)."""
         self.ensure_one()
         journal = self.mobilepay_journal_id
+        if settlement.currency_id != self.company_id.currency_id:
+            raise UserError(_(
+                "Automatic MobilePay settlement requires the company currency. "
+                "Foreign-currency payouts require manual accounting review."
+            ))
         description = _("MobilePay Payout Settlement %s") % settlement.payout_id
         line_ids = []
         
@@ -1135,6 +1180,12 @@ class PaymentProvider(models.Model):
         }
         if self.mobilepay_fee_tax_id:
             fee_vals["tax_ids"] = [(6, 0, [self.mobilepay_fee_tax_id.id])]
+            # Ledger fees are the total deduction, including any configured VAT.
+            fee_vals["debit"] = self.mobilepay_fee_tax_id.with_context(
+                force_price_include=True
+            ).compute_all(
+                settlement.fee_amount, currency=settlement.currency_id
+            )["total_excluded"]
         
         line_ids.append((0, 0, fee_vals))
         
@@ -1171,18 +1222,17 @@ class PaymentProvider(models.Model):
         refund_refs = [r["psp_reference"] for r in data["refunds"] if r["psp_reference"]]
         all_api_refs = psp_refs + refund_refs
 
-        if not all_api_refs:
-            return
-
         transactions = self.env["payment.transaction"].search([
-            ("mobilepay_payment_id", "in", all_api_refs)
+            ("provider_id", "=", self.id),
+            "|", ("mobilepay_payment_id", "in", all_api_refs),
+            ("mobilepay_api_reference", "in", all_api_refs),
         ])
 
         clearing_lines = self.env["account.move.line"]
 
         # 1. Match standard payments linked via account.payment
         if transactions:
-            payment_moves = transactions.payment_id.move_id
+            payment_moves = transactions.payment_id.move_id.filtered(lambda m: m.state == "posted")
             if payment_moves:
                 clearing_lines |= payment_moves.line_ids.filtered(
                     lambda l: l.account_id == self.mobilepay_clearing_account_id and not l.reconciled
@@ -1193,6 +1243,8 @@ class PaymentProvider(models.Model):
         if references:
             additional_lines = self.env["account.move.line"].search([
                 ("account_id", "=", self.mobilepay_clearing_account_id.id),
+                ("company_id", "=", self.company_id.id),
+                ("parent_state", "=", "posted"),
                 ("reconciled", "=", False),
                 "|",
                 ("ref", "in", references),
@@ -1208,7 +1260,9 @@ class PaymentProvider(models.Model):
         # Reconcile everything together
         lines_to_reconcile = clearing_lines | settlement_clearing_lines
         if len(lines_to_reconcile) > 1:
-            try:
-                lines_to_reconcile.reconcile()
-            except Exception as e:
-                _logger.warning("MobilePay: Automatic reconciliation failed for payout %s: %s", move.ref, str(e))
+            lines_to_reconcile.reconcile()
+        return bool(move.line_ids.filtered(
+            lambda l: l.account_id == self.mobilepay_clearing_account_id
+        )) and all(move.line_ids.filtered(
+            lambda l: l.account_id == self.mobilepay_clearing_account_id
+        ).mapped("reconciled"))

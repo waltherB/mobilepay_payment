@@ -4,6 +4,8 @@ import uuid
 import re
 import json
 import logging
+import math
+from datetime import timedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
@@ -62,6 +64,12 @@ class PaymentTransaction(models.Model):
         currency_field="currency_id",
         readonly=True,
     )
+    cancelled_amount = fields.Monetary(
+        string="Cancelled Amount",
+        currency_field="currency_id",
+        readonly=True,
+        copy=False,
+    )
 
     # Status Tracking
     last_status_poll = fields.Datetime(
@@ -76,15 +84,22 @@ class PaymentTransaction(models.Model):
         store=False,
     )
 
-    @api.depends("state", "mobilepay_status", "provider_id.code", "authorized_amount")
+    @api.depends(
+        "state", "mobilepay_status", "provider_id.code", "authorized_amount",
+        "captured_amount", "cancelled_amount", "source_transaction_id",
+    )
     def _compute_capture_eligible(self):
         """Compute whether transaction is eligible for manual capture."""
         for transaction in self:
             transaction.capture_eligible = (
                 transaction.provider_id.code == "mobilepay"
                 and transaction.state == "authorized"
-                and transaction.mobilepay_status in ["RESERVED", "AUTHORIZED"]
-                and transaction.authorized_amount > 0
+                and not transaction.source_transaction_id
+                and transaction.mobilepay_status in ["RESERVED", "AUTHORIZED", "PARTIALLY_CAPTURED"]
+                and transaction.currency_id.compare_amounts(
+                    transaction.authorized_amount,
+                    transaction.captured_amount + transaction.cancelled_amount,
+                ) > 0
             )
 
     def _convert_dkk_to_ore(self, amount_dkk):
@@ -167,6 +182,8 @@ class PaymentTransaction(models.Model):
         """
         if not phone_number:
             return None
+        if not isinstance(phone_number, str) or not re.fullmatch(r"[+\d\s().-]+", phone_number):
+            return None
 
         # Remove all non-digit characters
         digits_only = re.sub(r"\D", "", phone_number)
@@ -239,22 +256,23 @@ class PaymentTransaction(models.Model):
         # Format customer phone number
         # Priority: 1. Context (from checkout form), 2. Partner phone, 3. Partner mobile
         raw_phone = self.env.context.get("mobilepay_phone")
-        if not raw_phone and self.partner_id:
+        if "mobilepay_phone" not in self.env.context and self.partner_id:
             raw_phone = self.partner_id.phone or self.partner_id.mobile
 
         customer_phone = self._format_phone_number_v3(raw_phone) if raw_phone else None
+        if raw_phone and not customer_phone:
+            raise UserError(_("Please enter a valid MobilePay phone number."))
 
-        _logger.info(
-            f"Initiating MobilePay payment for transaction {self.reference}. Phone: {customer_phone}"
-        )
-
-        # Prepare returnUrl (MobilePay V3 requires HTTPS)
+        # Rewriting the scheme cannot provide TLS for an HTTP-only deployment.
         base_url = self.provider_id.get_base_url().rstrip("/")
-        if base_url.startswith("http://"):
-            _logger.info(
-                "MobilePay: Forcing HTTPS for returnUrl as per V3 requirements"
-            )
-            base_url = base_url.replace("http://", "https://", 1)
+        from urllib.parse import urlparse
+        parsed_base = urlparse(base_url)
+        if parsed_base.scheme != "https" or not parsed_base.netloc:
+            raise UserError(_(
+                "MobilePay requires a reachable HTTPS website URL for payment returns. "
+                "Configure HTTPS and the website domain/base URL before starting a payment. "
+                "Changing http to https without a TLS endpoint does not work."
+            ))
 
         payment_data = {
             "amount": {
@@ -284,8 +302,7 @@ class PaymentTransaction(models.Model):
                 "email": self.partner_id.email or "",
             }
 
-            # Only send phone number in production to avoid MT landing page crashes with unregistered test numbers
-            if customer_phone and self.provider_id.state == "enabled":
+            if customer_phone:
                 customer_data["phoneNumber"] = customer_phone
 
             payment_data["customer"] = customer_data
@@ -311,10 +328,6 @@ class PaymentTransaction(models.Model):
             "merchantName": merchant_name[:50],
         }
 
-        _logger.info(
-            f"MobilePay Final Payload for {self.reference}: {json.dumps(payment_data)}"
-        )
-
         try:
             # Send payment request via API client
             api_client = self.env["mobilepay.api.client"]
@@ -324,7 +337,7 @@ class PaymentTransaction(models.Model):
                 idempotency_key=self.mobilepay_idempotency_key,
             )
 
-            self.mobilepay_api_reference = response_data.get("reference")
+            self.mobilepay_api_reference = response_data.get("reference") or api_reference
 
             # Set the standard Odoo provider reference field used by payment views
             # and accounting flows. Prefer the MobilePay API reference, then the
@@ -381,8 +394,11 @@ class PaymentTransaction(models.Model):
         self.ensure_one()
         if self.provider_id.code != "mobilepay" or not self.mobilepay_api_reference:
             return None
+        if self.source_transaction_id:
+            return self.source_transaction_id._mobilepay_get_payment_status()
 
         try:
+            self._mobilepay_lock_payment()
             api_client = self.env["mobilepay.api.client"]
             status_data = api_client.get_payment_status(
                 self.provider_id, self.mobilepay_api_reference
@@ -560,9 +576,31 @@ class PaymentTransaction(models.Model):
             )
             return
 
-        # Map MobilePay status to Odoo state
+        details = status_data.get("paymentDetails") or status_data.get("aggregate") or {}
+        values = {"mobilepay_status": status}
+        for remote, local in (
+            ("authorizedAmount", "authorized_amount"),
+            ("capturedAmount", "captured_amount"),
+            ("refundedAmount", "refunded_amount"),
+            ("cancelledAmount", "cancelled_amount"),
+        ):
+            if remote in details:
+                values[local] = self._parse_mobilepay_amount(details[remote])
+        self.write(values)
+
+        # Vipps keeps state AUTHORIZED after captures and cancellations.
         if status in ["RESERVED", "AUTHORIZED"]:
-            self._set_authorized()
+            remaining = self.authorized_amount - self.captured_amount - self.cancelled_amount
+            if self.currency_id.is_zero(remaining) and self.authorized_amount:
+                if self.captured_amount:
+                    self._set_done()
+                else:
+                    self._set_canceled()
+            elif self.captured_amount:
+                self.mobilepay_status = "PARTIALLY_CAPTURED"
+                self._set_authorized()
+            else:
+                self._set_authorized()
         elif status == "CAPTURED":
             self._set_done()
         elif status in ["CANCELLED", "EXPIRED", "ABORTED", "TERMINATED"]:
@@ -578,35 +616,52 @@ class PaymentTransaction(models.Model):
                 self.reference,
             )
 
-        # Update captured/refunded amounts if present
-        details = status_data.get("paymentDetails", {}) or status_data.get("aggregate", {})
-        if details:
-            vals = {}
-            if "capturedAmount" in details:
-                vals["captured_amount"] = self._parse_mobilepay_amount(
-                    details["capturedAmount"]
-                )
-            if "refundedAmount" in details:
-                vals["refunded_amount"] = self._parse_mobilepay_amount(
-                    details["refundedAmount"]
-                )
-            if "authorizedAmount" in details:
-                vals["authorized_amount"] = self._parse_mobilepay_amount(
-                    details["authorizedAmount"]
-                )
+    def _mobilepay_lock_payment(self):
+        """Serialize modifications of the same remote payment, including its children."""
+        self.ensure_one()
+        root = self
+        while root.source_transaction_id:
+            root = root.source_transaction_id
+        self.env.flush_all()
+        self.env.cr.execute(
+            "SELECT id FROM payment_transaction WHERE id = %s FOR UPDATE", [root.id]
+        )
+        (root | self).invalidate_recordset()
+        return root
 
-            if vals:
-                self.write(vals)
+    def _mobilepay_modification_amount(self, requested, remaining):
+        amount = remaining if requested is None else requested
+        if (
+            not isinstance(amount, (int, float))
+            or isinstance(amount, bool)
+            or not math.isfinite(amount)
+            or self.currency_id.compare_amounts(amount, 0) <= 0
+            or self.currency_id.compare_amounts(amount, remaining) > 0
+            or not math.isclose(amount, self.currency_id.round(amount), rel_tol=0, abs_tol=1e-9)
+        ):
+            raise UserError(_("The amount must be positive and cannot exceed the remaining amount."))
+        return self.currency_id.round(amount)
 
-            # If fully refunded, update mobilepay_status
-            if status == "REFUNDED":
-                captured = vals.get("captured_amount", self.captured_amount)
-                refunded = vals.get("refunded_amount", self.refunded_amount)
-                self.write({"mobilepay_status": "REFUNDED"})
-                _logger.info(
-                    "MobilePay transaction %s refunded: captured=%.2f, refunded=%.2f",
-                    self.reference, captured, refunded,
-                )
+    def _mobilepay_operation_key(self, operation, amount, processed):
+        # Stable across a DB rollback or a lost HTTP response; distinct for the next operation.
+        return self._generate_idempotency_key(
+            f"{self.mobilepay_api_reference}:{self.id}:{operation}:"
+            f"{self._convert_dkk_to_ore(processed)}:{self._convert_dkk_to_ore(amount)}"
+        )
+
+    def _mobilepay_check_modification(self, response, field, expected):
+        aggregate = response.get("aggregate") if isinstance(response, dict) else None
+        remote_amount = aggregate.get(field) if isinstance(aggregate, dict) else None
+        if (
+            not isinstance(remote_amount, dict)
+            or remote_amount.get("currency") != self.currency_id.name
+            or remote_amount.get("value") != self._convert_dkk_to_ore(expected)
+        ):
+            raise UserError(_(
+                "MobilePay did not confirm the requested %(operation)s amount. "
+                "Check the payment in the merchant portal before retrying.",
+                operation=field,
+            ))
 
     def _send_capture_request(self, amount_to_capture=None):
         """
@@ -620,54 +675,42 @@ class PaymentTransaction(models.Model):
         if self.provider_id.code != "mobilepay":
             return super()._send_capture_request(amount_to_capture=amount_to_capture)
 
-        if not self.capture_eligible:
+        root = self._mobilepay_lock_payment()
+        if root != self or not self.capture_eligible:
             raise UserError(_("This transaction is not eligible for capture."))
-
-        # Use amount_to_capture if provided, otherwise the full transaction amount
-        capture_amount = amount_to_capture or self.amount
-
-        # Amount to capture (in øre)
-        amount_ore = self._convert_dkk_to_ore(capture_amount)
-
-        capture_data = {
-            "modificationAmount": {
-                "currency": self.currency_id.name or "DKK",
-                "value": amount_ore,
-            },
-        }
-
-        try:
-            api_client = self.env["mobilepay.api.client"]
-            api_client.capture_payment(
-                self.provider_id,
-                self.mobilepay_api_reference,
-                capture_data,
-                idempotency_key=str(uuid.uuid4()),
-            )
-
-            # Update transaction state and amounts
-            new_captured_amount = self.captured_amount + capture_amount
-            # If fully captured (or close to it)
-            if new_captured_amount >= self.authorized_amount - 0.01:
-                self._set_done()
-                self.write({
-                    "captured_amount": new_captured_amount,
-                    "mobilepay_status": "CAPTURED",
-                })
-            else:
-                self.write({
-                    "captured_amount": new_captured_amount,
-                    "mobilepay_status": "PARTIALLY_CAPTURED",
-                })
-
-            return True
-
-        except UserError as e:
-            # Re-raise UserErrors from API client
-            raise e
-        except Exception as e:
-            _logger.error(f"Failed to capture transaction {self.reference}: {str(e)}")
-            raise UserError(_("Payment capture failed: %s") % str(e))
+        if not self.mobilepay_api_reference:
+            raise UserError(_("Missing MobilePay API Reference for capture."))
+        remaining = self.authorized_amount - self.captured_amount - self.cancelled_amount
+        amount = self._mobilepay_modification_amount(amount_to_capture, remaining)
+        child = super()._send_capture_request(amount_to_capture=amount)
+        response = self.env["mobilepay.api.client"].capture_payment(
+            self.provider_id,
+            self.mobilepay_api_reference,
+            {"modificationAmount": {
+                "currency": self.currency_id.name,
+                "value": self._convert_dkk_to_ore(amount),
+            }},
+            idempotency_key=self._mobilepay_operation_key("capture", amount, self.captured_amount),
+        )
+        total = self.captured_amount + amount
+        self._mobilepay_check_modification(response, "capturedAmount", total)
+        self.write({
+            "captured_amount": total,
+            "mobilepay_status": "CAPTURED" if self.currency_id.is_zero(remaining - amount)
+            else "PARTIALLY_CAPTURED",
+        })
+        capture_tx = child or self
+        if child:
+            child.write({
+                "mobilepay_api_reference": self.mobilepay_api_reference,
+                "mobilepay_payment_id": self.mobilepay_payment_id,
+                "provider_reference": self.provider_reference,
+                "captured_amount": amount,
+                "mobilepay_status": "CAPTURED",
+            })
+        capture_tx._set_done()
+        self.env.ref("payment.cron_post_process_payment_tx")._trigger()
+        return child
 
     def _mobilepay_build_payment_description(self):
         """
@@ -776,7 +819,7 @@ class PaymentTransaction(models.Model):
         status_timeout_min = 5
 
         for tx in self:
-            if tx.provider_id.code != "mobilepay":
+            if tx.provider_id.code != "mobilepay" or tx.source_transaction_id:
                 continue
 
             if tx.state in ["draft", "pending"]:
@@ -789,6 +832,30 @@ class PaymentTransaction(models.Model):
                 # Poll authorized transactions to catch missed webhooks and
                 # keep the event log / amounts up to date.
                 tx._mobilepay_get_payment_status()
+
+    @api.model
+    def _cron_mobilepay_auto_capture(self):
+        transactions = self.search([
+            ("provider_id.code", "=", "mobilepay"),
+            ("provider_id.state", "in", ["test", "enabled"]),
+            ("provider_id.capture_manually", "=", False),
+            ("provider_id.capture_on_delivery", "=", False),
+            ("source_transaction_id", "=", False),
+            ("state", "=", "authorized"),
+        ], order="last_state_change, id")
+        now = fields.Datetime.now()
+        for tx in transactions:
+            due = tx.last_state_change + timedelta(hours=tx.provider_id.auto_capture_delay)
+            if now < due:
+                continue
+            try:
+                with self.env.cr.savepoint():
+                    tx._send_capture_request()
+            except UserError as error:
+                _logger.warning("MobilePay delayed capture failed for %s: %s", tx.reference, error)
+                tx._mobilepay_chatter_post(
+                    body=_("MobilePay delayed capture failed: %s", str(error))
+                )
 
     @api.model
     def _mobilepay_monitor_capture_expiry(self):
@@ -898,113 +965,105 @@ class PaymentTransaction(models.Model):
             amount_to_refund (float): Amount to refund in DKK. Defaults to full amount.
 
         Returns:
-            dict: Refund response data
+            payment.transaction: The negative refund child transaction.
         """
         self.ensure_one()
         if self.provider_id.code != "mobilepay":
             return super()._send_refund_request(amount_to_refund)
 
-        if self.state != "done":
+        root = self._mobilepay_lock_payment()
+        if self.state != "done" or self.operation == "refund":
             raise UserError(_("Only confirmed transactions can be refunded."))
-
-        if not self.mobilepay_api_reference:
+        if self.child_transaction_ids.filtered(
+            lambda tx: tx.operation == self.operation and tx.state == "done"
+        ):
+            raise UserError(_("Refund the individual captured transactions, not their source."))
+        if not root.mobilepay_api_reference:
             raise UserError(_("Missing MobilePay API Reference for refund."))
-
-        # Calculate refund amount
-        refund_amount = amount_to_refund or self.captured_amount
-
-        # Validate refund amount
-        remaining_amount = self.captured_amount - self.refunded_amount
-        # Allow small float discrepancies if necessary, but DKK is usually 2 decimals
-        if refund_amount > remaining_amount + 0.01:
-            raise UserError(
-                _(
-                    "Refund amount (%(refund)s) cannot exceed remaining captured amount (%(remaining)s).",
-                    refund=refund_amount,
-                    remaining=remaining_amount,
-                )
-            )
-
-        amount_ore = self._convert_dkk_to_ore(refund_amount)
-
-        refund_data = {
-            "modificationAmount": {
-                "currency": self.currency_id.name or "DKK",
-                "value": amount_ore,
-            },
-        }
-
-        try:
-            api_client = self.env["mobilepay.api.client"]
-            response = api_client.refund_payment(
-                self.provider_id,
-                self.mobilepay_api_reference,
-                refund_data,
-                idempotency_key=str(uuid.uuid4()),
-            )
-
-            # Update refunded amount
-            # Note: Odoo core usually handles state if we return a specific structure,
-            # but for partial refunds we manage the amounts manually here to be safe and precise
-            new_refunded_amount = self.refunded_amount + refund_amount
-            self.write(
-                {
-                    "refunded_amount": new_refunded_amount,
-                    # Update status if needed, but 'done' usually stays 'done' for partial refunds
-                    # If fully refunded, we might set 'mobilepay_status' to 'REFUNDED'
-                    "mobilepay_status": "REFUNDED"
-                    if new_refunded_amount >= self.captured_amount
-                    else self.mobilepay_status,
-                }
-            )
-
-            return response
-
-        except UserError as e:
-            raise e
-        except Exception as e:
-            _logger.error(f"Failed to refund transaction {self.reference}: {str(e)}")
-            raise UserError(_("Refund failed: %s") % str(e))
+        remaining = min(
+            self.captured_amount - self.refunded_amount,
+            root.captured_amount - root.refunded_amount,
+        )
+        amount = self._mobilepay_modification_amount(amount_to_refund, remaining)
+        refund_tx = super()._send_refund_request(amount_to_refund=amount)
+        response = self.env["mobilepay.api.client"].refund_payment(
+            self.provider_id,
+            root.mobilepay_api_reference,
+            {"modificationAmount": {
+                "currency": self.currency_id.name,
+                "value": self._convert_dkk_to_ore(amount),
+            }},
+            idempotency_key=self._mobilepay_operation_key("refund", amount, self.refunded_amount),
+        )
+        total = root.refunded_amount + amount
+        self._mobilepay_check_modification(response, "refundedAmount", total)
+        self.refunded_amount += amount
+        if root != self:
+            root.refunded_amount = total
+        if self.currency_id.is_zero(root.captured_amount - total):
+            root.mobilepay_status = "REFUNDED"
+        refund_tx.write({
+            "mobilepay_api_reference": root.mobilepay_api_reference,
+            "mobilepay_payment_id": root.mobilepay_payment_id,
+            "provider_reference": root.provider_reference,
+            "refunded_amount": amount,
+            "mobilepay_status": "REFUNDED",
+        })
+        refund_tx._set_done()
+        self.env.ref("payment.cron_post_process_payment_tx")._trigger()
+        return refund_tx
 
     def _send_cancel_request(self):
-        """
-        Send cancel request to MobilePay API (void operation).
+        """Compatibility entry point used by delivery/order/expiry integrations."""
+        return self._send_void_request()
 
-        Returns:
-            dict: Cancel response data
-        """
+    def _send_void_request(self, amount_to_void=None):
         self.ensure_one()
         if self.provider_id.code != "mobilepay":
-            return super()._send_cancel_request()
-
+            return super()._send_void_request(amount_to_void=amount_to_void)
+        root = self._mobilepay_lock_payment()
+        if root != self or self.state not in ("draft", "pending", "authorized"):
+            raise UserError(_("Only open MobilePay authorizations can be cancelled."))
         if not self.mobilepay_api_reference:
             raise UserError(_("Missing MobilePay API Reference for cancellation."))
-
-        try:
-            api_client = self.env["mobilepay.api.client"]
-            response = api_client.cancel_payment(
-                self.provider_id,
-                self.mobilepay_api_reference,
-                idempotency_key=str(uuid.uuid4()),
+        remaining = self.authorized_amount - self.captured_amount - self.cancelled_amount
+        if self.state == "authorized":
+            amount = self._mobilepay_modification_amount(amount_to_void, remaining)
+            if self.currency_id.compare_amounts(amount, remaining):
+                raise UserError(_("MobilePay can only cancel the entire remaining reservation."))
+        else:
+            amount = self.amount
+        child = super()._send_void_request(amount_to_void=amount)
+        response = self.env["mobilepay.api.client"].cancel_payment(
+            self.provider_id,
+            self.mobilepay_api_reference,
+            idempotency_key=self._mobilepay_operation_key("cancel", amount, self.cancelled_amount),
+        )
+        if self.state == "authorized":
+            self._mobilepay_check_modification(
+                response, "cancelledAmount", self.cancelled_amount + amount
             )
-
-            # Update status
-            self.write({"mobilepay_status": "CANCELLED"})
-            # Log response for debugging
-            _logger.info(f"API response (HTTP {response.status_code}): {response.text}")
-            if response.status_code >= 400:
-                _logger.error(f"API error response body: {response.text}")
-            self._set_canceled()
-
-            return response
-
-        except Exception as e:
-            _logger.error(f"Failed to cancel transaction {self.reference}: {str(e)}")
-            raise UserError(_("Cancellation failed: %s") % str(e))
+        elif not isinstance(response, dict) or response.get("state") != "TERMINATED":
+            raise UserError(_("MobilePay did not confirm cancellation of the pending payment."))
+        self.write({
+            "cancelled_amount": self.cancelled_amount + amount,
+            "mobilepay_status": "CAPTURED" if self.captured_amount else "CANCELLED",
+        })
+        void_tx = child or self
+        if child:
+            child.write({
+                "mobilepay_api_reference": self.mobilepay_api_reference,
+                "mobilepay_payment_id": self.mobilepay_payment_id,
+                "provider_reference": self.provider_reference,
+                "cancelled_amount": amount,
+                "mobilepay_status": "CANCELLED",
+            })
+        void_tx._set_canceled()
+        self.env.ref("payment.cron_post_process_payment_tx")._trigger()
+        return child
 
     def _get_specific_rendering_values(self, processing_values):
         """Override to provide MobilePay-specific rendering values."""
-        _logger.warning("MOBILEPAY REDIRECT FIX IS LOADED AND RUNNING!")
         res = super()._get_specific_rendering_values(processing_values)
         if self.provider_id.code != "mobilepay":
             return res
@@ -1019,13 +1078,8 @@ class PaymentTransaction(models.Model):
         parsed_url = urlparse(redirect_url)
 
         mobilepay_values = {
-            "api_url": redirect_url.split("?")[0],
+            "api_url": parsed_url._replace(query="").geturl(),
+            "redirect_params": parse_qsl(parsed_url.query, keep_blank_values=True),
         }
-        
-        # Add all query parameters (like token) to rendering values
-        for key, value in parse_qsl(parsed_url.query):
-            mobilepay_values[key] = value
-            
-        _logger.warning("MOBILEPAY RENDER DICT: %s" % mobilepay_values)
 
         return {**res, **mobilepay_values}

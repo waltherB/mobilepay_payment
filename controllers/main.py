@@ -75,6 +75,9 @@ class MobilePayController(http.Controller):
         except ValueError:
             _logger.warning("MobilePay Webhook: Invalid JSON payload")
             return request.make_response("Invalid JSON", status=400)
+        if not isinstance(data, dict) or not isinstance(data.get("data", data), dict):
+            _logger.warning("MobilePay Webhook: Expected a JSON object")
+            return request.make_response("Invalid payload", status=400)
 
         # Log raw payload for debugging
         _logger.info(f"MobilePay Webhook Payload: {data}")
@@ -126,6 +129,7 @@ class MobilePayController(http.Controller):
             .search(
                 [
                     ("provider_id.code", "=", "mobilepay"),
+                    ("source_transaction_id", "=", False),
                     "|",
                     "|",
                     "|",
@@ -158,17 +162,16 @@ class MobilePayController(http.Controller):
                 )
             )
 
+        if not provider_sudo:
+            _logger.warning("MobilePay Webhook: No provider available to verify signature")
+            raise Forbidden("Unknown provider")
+
         if provider_sudo:
             # 4. Verify Signature
             path = request.httprequest.path
             query = request.httprequest.query_string.decode("utf-8")
             if query:
                 path = f"{path}?{query}"
-
-            # Comprehensive Header Logging for diagnostics
-            _logger.info("MobilePay Webhook: Incoming Headers:")
-            for key, value in headers.items():
-                _logger.info(f"  {key}: {value}")
 
             msg_webhook_id = headers.get("Webhook-Id")
             stored_webhook_id = provider_sudo.mobilepay_webhook_id
@@ -223,7 +226,9 @@ class MobilePayController(http.Controller):
 
         try:
             # Fetch latest status to be safe (idempotent)
-            tx_sudo._mobilepay_get_payment_status()
+            if tx_sudo._mobilepay_get_payment_status() is None:
+                _logger.warning("MobilePay Webhook: Status refresh failed; requesting retry")
+                return request.make_response("Status refresh failed", status=503)
             return request.make_response("OK", status=200)
 
         except Exception as e:
@@ -240,102 +245,22 @@ class MobilePayController(http.Controller):
         path,
         provider,
     ):
-        """
-        Robust signature verification (v42).
-        Tests multiple permutations of STS construction and secret formats.
-        """
-        if not provider:
+        """Verify the canonical Vipps signed request, including the body hash."""
+        if not provider or not provider.mobilepay_webhook_secret or not host_header:
             return False
-
-        headers = request.httprequest.headers
-        try:
-            # 1. Content Hash Verification
-            calculated_hash_bytes = base64.b64encode(hashlib.sha256(payload).digest())
-            calculated_hash = calculated_hash_bytes.decode("utf-8").strip()
-            provided_hash = (content_hash_header or "").strip()
-
-            if not hmac.compare_digest(calculated_hash, provided_hash):
-                _logger.warning(
-                    f"MobilePay Webhook: Content hash mismatch. Calc: {calculated_hash}, Provided: {provided_hash}"
-                )
-                # We continue anyway as some test environments might have slight payload mutations
-            
-            # 2. Extract Provided Signature
-            signature_match = re.search(r"Signature=([^& \n]+)", auth_header or "")
-            provided_signature = (
-                signature_match.group(1).strip() if signature_match else ""
-            )
-            if not provided_signature:
-                _logger.warning("MobilePay Webhook: No signature found in headers.")
-                return False
-
-            # 3. Handle Hinted Headers
-            signed_headers_match = re.search(r"SignedHeaders=([^& \n]+)", auth_header or "")
-            hint_headers = (
-                signed_headers_match.group(1).split(";") if signed_headers_match else []
-            )
-            if not hint_headers:
-                hint_headers = ["x-ms-date", "host", "x-ms-content-sha256"]
-
-            # 4. Prepare Secret(s)
-            secret_str = (provider.mobilepay_webhook_secret or "").strip()
-            if not secret_str:
-                _logger.warning("MobilePay Webhook: Missing webhook secret.")
-                return False
-
-            secrets_to_test = [secret_str.encode("utf-8")]
-            try:
-                secrets_to_test.append(base64.b64decode(secret_str))
-            except Exception:
-                pass
-
-            # 5. Permutation Matrix
-            # We test various ways the 'Host' might be treated and how the header list is joined
-            host_original = (headers.get("host") or "").strip()
-            
-            # Host permutations
-            hosts = [host_original, host_original.lower().split(":")[0], host_original.lower()]
-            hosts = list(dict.fromkeys(hosts)) # Unique
-
-            # Separator permutations
-            separators = [";", "\n", " "]
-
-            for secret_bytes in secrets_to_test:
-                for current_host in hosts:
-                    for sep in separators:
-                        # Build values based on hint_headers
-                        h_vals = []
-                        for h_name in hint_headers:
-                            if h_name.lower() == "host":
-                                h_vals.append(current_host)
-                            else:
-                                h_vals.append((headers.get(h_name) or "").strip())
-
-                        signed_headers_string = sep.join(h_vals)
-                        
-                        # STS Variations
-                        sts_variations = [
-                            f"POST\n{path}\n{signed_headers_string}", # Standard APIM
-                            f"POST\n{path}\n{signed_headers_string}\n", # Trailing newline
-                        ]
-
-                        for sts in sts_variations:
-                            calc_hmac = hmac.new(
-                                secret_bytes, sts.encode("utf-8"), hashlib.sha256
-                            ).digest()
-                            calc_sig = base64.b64encode(calc_hmac).decode("utf-8")
-
-                            if hmac.compare_digest(calc_sig, provided_signature):
-                                _logger.info(f"✅ MobilePay Webhook: Signature verified (Path: {path}, Sep: '{sep}', Host: '{current_host}')")
-                                return True
-
-            _logger.warning("MobilePay Webhook: All signature verification permutations failed.")
-            _logger.info(f"Diagnostic - Last STS attempted: '{sts.replace(chr(10), chr(92)+chr(110))}'")
+        calculated_hash = base64.b64encode(hashlib.sha256(payload).digest()).decode()
+        if not hmac.compare_digest(calculated_hash, content_hash_header or ""):
+            _logger.warning("MobilePay Webhook: Content hash mismatch")
             return False
-
-        except Exception as e:
-            _logger.error(f"MobilePay Webhook: Error during signature verification: {str(e)}")
-            return False
+        signed = f"POST\n{path}\n{date_header};{host_header};{content_hash_header}"
+        signature = base64.b64encode(hmac.new(
+            provider.mobilepay_webhook_secret.encode(), signed.encode(), hashlib.sha256
+        ).digest()).decode()
+        expected = (
+            "HMAC-SHA256 SignedHeaders=x-ms-date;host;x-ms-content-sha256"
+            f"&Signature={signature}"
+        )
+        return hmac.compare_digest(expected, auth_header or "")
 
     @http.route(
         "/payment/mobilepay/return",
@@ -363,6 +288,7 @@ class MobilePayController(http.Controller):
 
             domain = [
                 ("provider_id.code", "=", "mobilepay"),
+                ("source_transaction_id", "=", False),
                 "|",
                 ("reference", "in", search_refs),
                 ("mobilepay_api_reference", "in", search_refs),

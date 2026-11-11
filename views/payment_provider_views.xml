@@ -7,8 +7,8 @@
             <field name="model">payment.provider</field>
             <field name="inherit_id" ref="payment.payment_provider_form"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='capture_manually']" position="replace">
-                    <!-- remove duplicate base field; keep custom capture settings in Configuration -->
+                <xpath expr="//field[@name='capture_manually']" position="attributes">
+                    <attribute name="invisible">code == 'mobilepay' or not support_manual_capture</attribute>
                 </xpath>
                 <xpath expr="//group[@name='provider_credentials']" position="after">
                     <field name="show_mobilepay_fields" invisible="1"/>

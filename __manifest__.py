@@ -1,21 +1,26 @@
 # -*- coding: utf-8 -*-
 {
-    "version": "17.0.1.1.37",
+    "name": "MobilePay (Vipps) Payment Provider",
+    "version": "18.0.1.1.0",
     "category": "Accounting/Payment Providers",
     "summary": "Payment Provider: MobilePay (Vipps) for Danish market",
     "description": """
-MobilePay Payment Provider for Odoo 17
+MobilePay Payment Provider for Odoo 18
 
-This module integrates Vipps MobilePay ePayment API v3 with Odoo, providing:
-- Flexible Capture flows: Manual, Capture on Delivery (Stock integration), or Automatic after delay
-- Immediate payments and refunds (Full/Partial)
-- Real-time webhook processing with HMAC security
-- Phone number pre-fill for enhanced UX
-- Secure credential management with Fernet encryption
-- Diagnostic tools: API connection test and Webhook management
-- Danish market support (DKK currency)
+Development integration with the Vipps MobilePay ePayment API:
+- Payment creation, redirect, authorization, full and partial capture
+- Credential management with Fernet encryption
+- Webhook, status polling, delivery capture and settlement integration code
+- Diagnostic tools for API connection and webhook management
+- Seeded payment method for Denmark and DKK
 
-Supports both Odoo Enterprise and Community editions.
+Void/cancel, refund children, delayed capture and checkout phone transport have
+local regression coverage. Odoo 18 Community installation, update, browser,
+delivery and accounting workflows are tested with synthetic/mocked payments.
+Not production-ready: live merchant/app/proxy acceptance is blocked, and the
+legacy settlement API adapter still requires migration to the published API.
+Enterprise has not been tested.
+See README.md and MIGRATION-18.0.md for validation results and limitations.
     """,
     "author": "Wather",
     "website": "Not yet",

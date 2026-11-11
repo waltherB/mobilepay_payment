@@ -2,6 +2,7 @@
 
 import logging
 from odoo import models, _
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -46,8 +47,9 @@ class StockPicking(models.Model):
                         _logger.info(
                             f"Auto-capturing MobilePay transaction {tx.reference} for picking {picking.name}"
                         )
-                        tx.sudo()._send_capture_request()
-                    except Exception as e:
+                        with self.env.cr.savepoint():
+                            tx.sudo()._send_capture_request()
+                    except UserError as e:
                         error_msg = str(e)
                         _logger.error(
                             f"Failed to auto-capture transaction {tx.reference}: {error_msg}"

@@ -2,6 +2,7 @@
 
 import logging
 from odoo import models, _
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -9,12 +10,12 @@ _logger = logging.getLogger(__name__)
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
-    def action_cancel(self):
+    def _action_cancel(self):
         """
         Override sale order cancellation to automatically void any MobilePay
         authorized payment reservations, releasing the customer's funds immediately.
         """
-        res = super().action_cancel()
+        res = super()._action_cancel()
         self._mobilepay_cancel_authorized_transactions()
         return res
 
@@ -24,6 +25,8 @@ class SaleOrder(models.Model):
         so the customer's reserved funds are released promptly.
         """
         for order in self:
+            if order.state != "cancel":
+                continue
             # Use sudo() to access payment provider fields regardless of user ACL
             transactions = order.sudo().transaction_ids.filtered(
                 lambda tx: (
@@ -39,8 +42,9 @@ class SaleOrder(models.Model):
                     tx.reference, order.name,
                 )
                 try:
-                    tx.sudo()._send_cancel_request()
-                    tx.message_post(
+                    with self.env.cr.savepoint():
+                        tx.sudo()._send_cancel_request()
+                    order.message_post(
                         body=_(
                             "MobilePay payment authorization automatically cancelled "
                             "because sale order %(order)s was cancelled.",
@@ -49,14 +53,14 @@ class SaleOrder(models.Model):
                         message_type="notification",
                         subtype_xmlid="mail.mt_note",
                     )
-                except Exception as e:
+                except UserError as e:
                     _logger.error(
                         "MobilePay: Failed to cancel transaction %s after order %s "
                         "was cancelled: %s",
                         tx.reference, order.name, str(e),
                     )
                     # Post a warning so someone can act manually
-                    tx.message_post(
+                    order.message_post(
                         body=_(
                             "⚠️ Failed to automatically cancel MobilePay payment %(ref)s "
                             "after sale order %(order)s was cancelled: %(error)s\n"

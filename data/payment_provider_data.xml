@@ -23,6 +23,7 @@
             <field name="name">MobilePay</field>
             <field name="code">mobilepay</field>
             <field name="sequence">10</field>
+            <field name="support_refund">partial</field>
             <field name="image" type="base64" file="mobilepay_payment/static/description/icon.svg"/>
             <field name="provider_ids" eval="[(4, ref('payment_provider_mobilepay'))]"/>
             <field name="supported_country_ids" eval="[(4, ref('base.dk'))]"/>

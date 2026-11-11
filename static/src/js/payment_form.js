@@ -3,105 +3,63 @@
 import { _t } from "@web/core/l10n/translation";
 import paymentForm from "@payment/js/payment_form";
 
-console.log("MobilePay: payment_form.js extension active");
-
 paymentForm.include({
-
-    /**
-     * Handle MobilePay-specific payment form processing
-     * @override
-     */
-    async _processPayment(code, paymentOptionId, flow) {
-        console.log("MobilePay: _processPayment", { code, paymentOptionId, flow });
-
-        if (code !== 'mobilepay') {
-            return this._super(...arguments);
-        }
-
-        try {
-            // Validate phone number
-            const phoneInput = document.getElementById(`mobilepay_phone_${paymentOptionId}`);
-            if (phoneInput) {
-                const phoneNumber = phoneInput.value;
-                const formattedPhone = this._formatPhoneNumber(phoneNumber);
-                console.log("MobilePay: Phone validation result", { original: phoneNumber, formatted: formattedPhone });
-
-                if (phoneNumber && !formattedPhone) {
-                    this._displayError(
-                        _t("Invalid phone number"),
-                        _t("Please enter a valid Danish phone number (8 digits, optionally with +45).")
-                    );
-                    return; // Stop processing and wait for user to fix
-                }
-
-                // Update input with formatted value for visual feedback
-                if (formattedPhone) {
-                    phoneInput.value = formattedPhone;
-                }
-            } else {
-                console.warn(`MobilePay: Phone input 'mobilepay_phone_${paymentOptionId}' not found in DOM`);
+    async _initiatePaymentFlow(providerCode, paymentOptionId, paymentMethodCode, flow) {
+        if (providerCode === "mobilepay") {
+            const input = this._getMobilePayPhoneInput();
+            const value = input?.value.trim() || "";
+            const formatted = this._formatPhoneNumber(value);
+            if (value && !formatted) {
+                this._displayErrorDialog(
+                    _t("Invalid phone number"),
+                    _t("Please enter a valid Danish phone number (8 digits, optionally with +45).")
+                );
+                this._enableButton();
+                return;
             }
-        } catch (err) {
-            console.error("MobilePay: Error in _processPayment logic", err);
-            // We don't return here so that the super call still happens
+            if (input) {
+                input.value = formatted;
+            }
         }
-
         return this._super(...arguments);
     },
 
-    /**
-     * Add MobilePay phone number to transaction context
-     * @override
-     */
-    _prepareTransactionContext(paymentOptionId, flow) {
-        console.log("MobilePay: _prepareTransactionContext", { paymentOptionId, flow });
-        const context = this._super(...arguments);
-
-        try {
-            const phoneInput = document.getElementById(`mobilepay_phone_${paymentOptionId}`);
-            if (phoneInput) {
-                const value = phoneInput.value || phoneInput.getAttribute('value') || '';
-                if (value) {
-                    phoneInput.value = value;
-                    context['mobilepay_phone'] = value;
-                    console.log("MobilePay: Phone added to context", value);
-                }
+    _prepareTransactionRouteParams() {
+        const params = this._super(...arguments);
+        if (this.paymentContext.providerCode === "mobilepay") {
+            const input = this._getMobilePayPhoneInput();
+            if (input) {
+                params.mobilepay_phone = input.value.trim();
             }
-        } catch (err) {
-            console.error("MobilePay: Error in _prepareTransactionContext logic", err);
         }
-
-        return context;
+        return params;
     },
 
-    /**
-     * Format phone number for MobilePay pre-fill
-     * @private
-     * @param {string} phoneNumber - Raw phone number
-     * @returns {string} - Formatted phone number in E.164 format
-     */
+    _getMobilePayPhoneInput() {
+        const radio = this.el.querySelector('input[name="o_payment_radio"]:checked');
+        return radio && this._getInlineForm(radio)?.querySelector('[name="mobilepay_phone"]');
+    },
+
     _formatPhoneNumber(phoneNumber) {
         if (!phoneNumber) {
-            return '';
+            return "";
         }
-
-        // Remove all non-digit characters
-        let cleaned = phoneNumber.replace(/\D/g, '');
-
-        // Handle Danish phone numbers
-        if (cleaned.startsWith('45') && cleaned.length === 10) {
-            return '+' + cleaned;
-        } else if (cleaned.length === 8) {
-            return '+45' + cleaned;
-        } else if (cleaned.startsWith('0045') && cleaned.length === 12) {
-            return '+' + cleaned.substring(2);
+        if (!/^[+\d\s().-]+$/.test(phoneNumber)) {
+            return "";
         }
-
-        // Fallback for international
-        if (phoneNumber.trim().startsWith('+') && cleaned.length >= 10) {
-            return '+' + cleaned;
+        let digits = phoneNumber.replace(/\D/g, "");
+        if (digits.startsWith("00")) {
+            digits = digits.substring(2);
         }
-
-        return '';
-    }
+        if (digits.length === 8) {
+            return "+45" + digits;
+        }
+        if (digits.startsWith("45") && digits.length === 10) {
+            return "+" + digits;
+        }
+        if (phoneNumber.trim().startsWith("+") && digits.length >= 9 && digits.length <= 15) {
+            return "+" + digits;
+        }
+        return "";
+    },
 });

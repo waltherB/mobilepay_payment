@@ -4,11 +4,17 @@
             <img src="mobilepay_logo.svg" style="max-width: 200px; margin-bottom: 20px;" alt="MobilePay Logo"/>
         </div>
         <h2 class="oe_slogan" style="color:#875ab5;">MobilePay (Vipps) Payment Provider</h2>
-        <h3 class="oe_slogan">Seamless payments for the Danish market</h3>
+        <h3 class="oe_slogan">Odoo 18 development integration for the Danish market</h3>
         <div class="oe_span12">
+            <p class="alert alert-warning">
+                Not production-ready. Lifecycle and checkout gaps are repaired and locally
+                tested with synthetic payments. Live merchant/app/webhook acceptance is
+                blocked; the legacy settlement API adapter still requires migration.
+                See README.md and MIGRATION-18.0.md in the addon source.
+            </p>
             <p class="oe_mt32">
-                Integrate <b>MobilePay Online (Vipps ePayment API v3)</b> directly into your Odoo eCommerce and Invoicing flows. 
-                Enable your customers in Denmark to pay effortlessly using their mobile phones with support for DKK.
+                Integrates with <b>MobilePay Online (Vipps ePayment API)</b> for Odoo eCommerce
+                and invoicing. The seeded payment method targets Denmark and DKK.
             </p>
         </div>
     </div>
@@ -20,15 +26,15 @@
         <div class="oe_span6">
             <div class="text-center">
                 <i class="fa fa-lock fa-4x" style="color:#875ab5;"></i>
-                <h4>Secure &amp; Compliant</h4>
-                <p>Fernet-encrypted credential storage, <b>HMAC-verified webhooks</b>, and full support for Authorize &amp; Capture flows.</p>
+                <h4>Credentials and Webhooks</h4>
+                <p>Fernet credential storage and HMAC webhook verification code are implemented. Live webhook acceptance remains required.</p>
             </div>
         </div>
         <div class="oe_span6">
             <div class="text-center">
                 <i class="fa fa-truck fa-4x" style="color:#875ab5;"></i>
                 <h4>Advanced Capture Flows</h4>
-                <p>Flexible capture options: <b>Manual</b>, <b>Capture on Delivery</b> (Stock integration), or <b>Automatic</b> after a configurable delay.</p>
+                <p>Full/partial capture, delayed cron and real delivery/backorder workflows are locally tested. Delivery mode captures the full remainder on the first completed delivery.</p>
             </div>
         </div>
     </div>
@@ -37,14 +43,14 @@
             <div class="text-center">
                 <i class="fa fa-refresh fa-4x" style="color:#875ab5;"></i>
                 <h4>Real-time Status</h4>
-                <p>Immediate payment status updates via webhooks and active polling fallback for maximum reliability.</p>
+                <p>Webhook and polling handlers exist. Synthetic authorization and capture status processing is tested; live delivery is not verified.</p>
             </div>
         </div>
         <div class="oe_span6">
             <div class="text-center">
                 <i class="fa fa-undo fa-4x" style="color:#875ab5;"></i>
-                <h4>Full Refund Support</h4>
-                <p>Process <b>full or partial refunds</b> directly from the Odoo backend with real-time API synchronization.</p>
+                <h4>Refund and Void Integration</h4>
+                <p>Refund children, backend refund wizard, outbound payments and remaining-authorization cancellation are tested with mocked API responses.</p>
             </div>
         </div>
     </div>
@@ -53,8 +59,8 @@
 <section class="oe_container">
     <div class="oe_row oe_spaced">
         <div class="oe_span12 text-center">
-            <h3>Enterprise Ready</h3>
-            <p>Fully compatible with Odoo Enterprise and Community editions. Features built-in diagnostic tools for API connectivity testing and webhook management.</p>
+            <h3>Compatibility</h3>
+            <p>Fresh installation and update on Odoo 18 Community: 91 registered tests, plus local Chromium checkout acceptance. Enterprise and live payment acceptance have not been tested.</p>
         </div>
     </div>
 </section>

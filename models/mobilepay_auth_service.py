@@ -139,10 +139,10 @@ class MobilePayAuthService(models.AbstractModel):
             # Mandatory Vipps system headers (highly recommended for troubleshooting)
             "Merchant-Serial-Number": merchant_serial,
             "Vipps-System-Name": "Odoo",
-            "Vipps-System-Version": "17.0",
+            "Vipps-System-Version": "18.0",
             "Vipps-System-Plugin-Name": "mobilepay_payment",
             "Vipps-System-Plugin-Version": "1.0.0",
-            "User-Agent": "Odoo/17.0 mobilepay_payment/1.0.0",
+            "User-Agent": "Odoo/18.0 mobilepay_payment/1.0.0",
         }
 
         try:
